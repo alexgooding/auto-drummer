@@ -3,14 +3,34 @@
 %Between 1 and 3 kicks must be assigned.
 1 {chooseHit(k, T) : time(T)} 3.
 
-%Defining odd quarterbeats.
+%Defining even quarter-beats.
+even(2*T) :- time(T), 2*T <= 16.
+
+%Defining odd quarter-beats.
 odd(2*T-1) :- time(T), 2*T-1 <= 16.
+
+%Defining odd half-beats.
+oddX2(4*T-3) :- time(T), 4*T-3 <= 16.
 
 %Between 2 and 3 snares must be assigned to an odd quarter-beat.
 2 {chooseHit(s, T) : odd(T)} 3.
 
-%Hats placed on every odd quarterbeat.
-8 {chooseHit(h, T) : odd(T)}.
+%Hats placed on every odd half-beat as a ground rhythm.
+4 {chooseHit(h, T) : oddX2(T)}.
+
+%Between 0 and 8 hats placed on odd quarter-beats.
+0 {chooseHit(h, T) : odd(T)} 8.
+
+%Between 0 and 4 hats placed on even quarter-beats.
+0 {chooseHit(h, T) : even(T)} 2.
+
+%Between 0 and 1 percussion hits placed anywhere on the measure.
+0 {chooseHit(p, T) : time(T)} 1.
+
+%Constraints
+
+%No kick on the last quarter-beat of the measure.
+:- chooseHit(k, 16).
 
 %Kicks and snares cannot be placed within 2 quarter-beats of each other
 :- chooseHit(k, T), chooseHit(s, T+1).
@@ -26,8 +46,13 @@ odd(2*T-1) :- time(T), 2*T-1 <= 16.
 :- chooseHit(k, T), chooseHit(s, T+2), chooseHit(k, T+4).
 :- chooseHit(s, T), chooseHit(k, T+2), chooseHit(s, T+4).
 
-%No kick on the last quarter-beat of the measure.
-:- chooseHit(k, 16).
+%Only even quarter-beat hats placed just before a snare hit.
+:- chooseHit(h, 2*T), time(T), not chooseHit(s, 2*T+1).
+
+%Percussion hits can only be placed where no other hit has been placed.
+:- chooseHit(p, T), chooseHit(k, T).
+:- chooseHit(p, T), chooseHit(s, T).
+:- chooseHit(p, T), chooseHit(h, T).
 
 % Facts
 
@@ -35,7 +60,7 @@ odd(2*T-1) :- time(T), 2*T-1 <= 16.
 chooseHit(k, 1).
 
 %Defining hit types and time period.
-hit(k). hit(s). %hit(h).
+hit(k). hit(s). hit(h). hit(p).
 time(1..16).
 
 #show chooseHit/2.
