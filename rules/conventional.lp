@@ -16,15 +16,14 @@ oddX2(4*T-3) :- time(T), 4*T-3 <= 16.
 oddFH(2*T-1) :- time(T), 2*T-1 >= 3, 2*T-1 <= 7.
 
 %Defining second half of the measures odd quarter-beats.
-oddSH(2*T-1) :- time(T), 2*T-1 >= 9, 2*T-1 <= 15.
+oddSH(2*T-1) :- time(T), 2*T-1 >= 11, 2*T-1 <= 15.
 
 %Defining a boolean variable.
 {b}.
 
-%Between 2 and 3 snares must be assigned to an odd quarter-beat conventionally.
+%Between 2 and 4 snares must be assigned to an odd quarter-beat conventionally.
 1 {chooseHit(s, T) : oddFH(T)} 1.
 1 {chooseHit(s, T) : oddSH(T)} 1.
-%0 {chooseHit(s, T) : odd(T)} 1.
 
 %Hats placed on every odd half-beat or quarter-beat as a ground rhythm.
 4 {chooseHit(h, T) : oddX2(T)} 4:- b.
@@ -41,6 +40,9 @@ oddSH(2*T-1) :- time(T), 2*T-1 >= 9, 2*T-1 <= 15.
 %No kick on the last quarter-beat of the measure.
 :- chooseHit(k, 16).
 
+%No kicks 1 beat apart.
+:- chooseHit(k, T), chooseHit(k, T+4).
+
 %Kicks and snares cannot be placed within 2 quarter-beats of each other
 :- chooseHit(k, T), chooseHit(s, T+1).
 :- chooseHit(k, T), chooseHit(s, T).
@@ -48,11 +50,8 @@ oddSH(2*T-1) :- time(T), 2*T-1 >= 9, 2*T-1 <= 15.
 :- chooseHit(s, T), chooseHit(k, T).
 :- chooseHit(k, T), chooseHit(k, T+1).
 
-%Snares cannot be placed 2 quarter-beats apart.
-:- chooseHit(s, T), chooseHit(s, T+2).
-
-%Snares cannot be placed too far apart from each other.
-:- chooseHit(s, T), chooseHit(s, T+12).
+%At least one snare must fall on the 5th or 13th quarter-beat of the measure.
+:- not chooseHit(s, 5), not chooseHit(s, 13).
 
 %No quick repeating patterns of kicks and snares (k-s-k or s-k-s)
 :- chooseHit(k, T), chooseHit(s, T+2), chooseHit(k, T+4).
