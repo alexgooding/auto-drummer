@@ -59,8 +59,7 @@ oddX2(4*T-3) :- time(T), 4*T-3 <= 16.
 %Kick on first beat.
 chooseHit(k, 1).
 
-%Defining hit types and time period.
-hit(k). hit(s). hit(h). hit(p).
+%Defining the time period.
 time(1..16).
 
 #show chooseHit/2.

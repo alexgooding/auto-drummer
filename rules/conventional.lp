@@ -82,8 +82,7 @@ oddSH(2*T-1) :- time(T), 2*T-1 >= 9, 2*T-1 <= 15.
 %Kick on first beat.
 chooseHit(k, 1).
 
-%Defining hit types and time period.
-hit(k). hit(s). hit(h). hit(p).
+%Defining the time period.
 time(1..16).
 
 #show chooseHit/2.
