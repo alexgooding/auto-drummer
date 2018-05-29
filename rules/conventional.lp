@@ -85,6 +85,10 @@ oddSH(2*T-1) :- time(T), 2*T-1 >= 11, 2*T-1 <= 15.
 :- chooseHit(g, T), chooseHit(h, T).
 :- chooseHit(g, T), chooseHit(p, T).
 :- chooseHit(g, T), chooseHit(k, T-1), not chooseHit(s, T+1).
+:- chooseHit(g, T-1), chooseHit(s, T), chooseHit(g, T+1).
+:- chooseHit(g, T-1), chooseHit(k, T), chooseHit(g, T+1).
+:- chooseHit(g, T), chooseHit(s, T-1).
+:- chooseHit(g, T), chooseHit(s, T+1), not chooseHit(g, T-2).
 
 % Facts
 

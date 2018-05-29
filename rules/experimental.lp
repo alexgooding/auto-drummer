@@ -63,6 +63,10 @@ oddX2(4*T-3) :- time(T), 4*T-3 <= 16.
 :- chooseHit(g, T), chooseHit(h, T).
 :- chooseHit(g, T), chooseHit(p, T).
 :- chooseHit(g, T), chooseHit(k, T-1), not chooseHit(s, T+1).
+:- chooseHit(g, T-1), chooseHit(s, T), chooseHit(g, T+1).
+:- chooseHit(g, T-1), chooseHit(k, T), chooseHit(g, T+1).
+:- chooseHit(g, T), chooseHit(s, T-1).
+:- chooseHit(g, T), chooseHit(s, T+1), not chooseHit(g, T-2).
 
 % Facts
 
