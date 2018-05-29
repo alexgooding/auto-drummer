@@ -35,6 +35,9 @@ oddSH(2*T-1) :- time(T), 2*T-1 >= 11, 2*T-1 <= 15.
 %Between 0 and 1 percussion hits placed anywhere on the measure.
 0 {chooseHit(p, T) : time(T)} 1.
 
+%Between 0 and 4 ghost snare hits placed on even quarter-beats.
+0 {chooseHit(g, T) : even(T)} 4.
+
 %Constraints
 
 %No kick on the last quarter-beat of the measure.
@@ -75,6 +78,13 @@ oddSH(2*T-1) :- time(T), 2*T-1 >= 11, 2*T-1 <= 15.
 :- chooseHit(p, T), chooseHit(s, T+1).
 :- chooseHit(p, T), chooseHit(h, T+1).
 :- chooseHit(p, 16).
+
+%Ghost snare hits must placed suitably to create shuffle - they can fill gaps where hats are not placed.
+:- chooseHit(g, T), chooseHit(k, T).
+:- chooseHit(g, T), chooseHit(s, T).
+:- chooseHit(g, T), chooseHit(h, T).
+:- chooseHit(g, T), chooseHit(p, T).
+:- chooseHit(g, T), chooseHit(k, T-1), not chooseHit(s, T+1).
 
 % Facts
 
