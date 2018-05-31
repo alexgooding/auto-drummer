@@ -4,19 +4,19 @@
 0 {chooseHit(k, T) : time(T)} 3.
 
 %Defining even quarter-beats.
-even(2*T) :- time(T), 2*T <= 16.
+even(2;4;6;8;10;12;14;16). 
 
 %Defining odd quarter-beats.
-odd(2*T-1) :- time(T), 2*T-1 <= 16.
+odd(1;3;5;7;9;11;13;15).
 
 %Defining odd half-beats.
-oddX2(4*T-3) :- time(T), 4*T-3 <= 16.
+oddX2(1;5;9;13). 
 
 %Defining first half of the measures odd quarter-beats.
-oddFH(2*T-1) :- time(T), 2*T-1 >= 3, 2*T-1 <= 7.
+oddFH(3;5;7).
 
 %Defining second half of the measures odd quarter-beats.
-oddSH(2*T-1) :- time(T), 2*T-1 >= 11, 2*T-1 <= 15.
+oddSH(11;13;15).
 
 %Defining a boolean variable.
 {b}.

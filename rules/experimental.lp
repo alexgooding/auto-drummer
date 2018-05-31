@@ -4,13 +4,13 @@
 0 {chooseHit(k, T) : time(T)} 3.
 
 %Defining even quarter-beats.
-even(2*T) :- time(T), 2*T <= 16.
+even(2;4;6;8;10;12;14;16). 
 
 %Defining odd quarter-beats.
-odd(2*T-1) :- time(T), 2*T-1 <= 16.
+odd(1;3;5;7;9;11;13;15).
 
 %Defining odd half-beats.
-oddX2(4*T-3) :- time(T), 4*T-3 <= 16.
+oddX2(1;5;9;13). 
 
 %Between 2 and 3 snares must be assigned to an odd quarter-beat.
 2 {chooseHit(s, T) : odd(T)} 3.
