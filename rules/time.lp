@@ -17,3 +17,6 @@ oddFH(3;5;7).
 
 %Defining second half of the measures odd quarter-beats.
 oddSH(11;13;15).
+
+%Choose what output to show.
+#show chooseHit/2.

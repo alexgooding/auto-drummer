@@ -4,7 +4,6 @@
 :- chooseHit(k, T), chooseHit(s, T+1).
 :- chooseHit(k, T), chooseHit(s, T).
 :- chooseHit(s, T), chooseHit(k, T+1).
-:- chooseHit(s, T), chooseHit(k, T).
 :- chooseHit(k, T), chooseHit(k, T+1).
 
 %No quick repeating patterns of kicks and snares (k-s-k or s-k-s)
