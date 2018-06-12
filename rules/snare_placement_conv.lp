@@ -6,3 +6,6 @@
 
 %At least one snare must fall on the 5th or 13th quarter-beat of the measure.
 :- not chooseHit(s, 5), not chooseHit(s, 13).
+
+%Snare cannot fall on the 3rd quarter-beat of the measure.
+:- chooseHit(s, 3).
