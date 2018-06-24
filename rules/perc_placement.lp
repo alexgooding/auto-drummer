@@ -1,4 +1,9 @@
 % The rules associated with percussion placement.
 
-%Between 0 and 1 percussion hits placed anywhere on the measure.
-0 {chooseHit(p, T) : time(T)} 1.
+%Between X and Y percussion hits placed anywhere on the measure.
+X {chooseHit(p, T) : time(T)} Y :- percMin(X), percMax(Y).
+
+%Hit density parameters.
+
+percMin(0).
+percMax(1).

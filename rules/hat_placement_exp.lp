@@ -8,3 +8,12 @@
 
 %Between 0 and 2 hats placed on even quarter-beats.
 0 {chooseHit(h, T) : even(T)} 2.
+
+%Hit density constraint.
+
+X {chooseHit(h, T) : time(T)} Y :- hatMin(X), hatMax(Y).
+
+%Hit density parameters.
+
+hatMin(0).
+hatMax(16).

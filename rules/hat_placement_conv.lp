@@ -10,4 +10,15 @@
 %Between 0 and 2 hats placed on even quarter-beats.
 0 {chooseHit(h, T) : even(T)} 2.
 
+%Don't allow even quarter-beat hat hits when the groud beat is every half-beat.
 :- chooseHit(h, 2*T), time(T), b.
+
+%Hit density constraint.
+
+X {chooseHit(h, T) : time(T)} Y :- hatMin(X), hatMax(Y).
+
+%Hit density parameters.
+
+hatMin(0).
+hatMax(10) :- not b.
+hatMax(4) :- b.
