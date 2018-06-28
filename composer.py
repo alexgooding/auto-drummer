@@ -52,7 +52,10 @@ def generate_solutions(constraints, user_input):
     problem = open('rules\\problem.lp', 'r').read()
     solutions = solve(problem)
     #Print the number of patterns found.
-    print(str(len(solutions)) + " one bar patterns have been found.\n")
+    if solutions is not None:
+        print(str(len(solutions)) + " one bar patterns have been found.\n")
+    else:
+        print("No patterns have been found.\n")
 
     return solutions
 
@@ -171,6 +174,8 @@ from random import randint
 
 def generate_patterns(constraints, n = 1, pattern_length = 1, humanisation_intensity = 0, user_input = None):
     solutions = generate_solutions(constraints, user_input)
+    if solutions is None:
+        return 
     for i in range(1, n+1):
         rand_solution = None
         #Iterate over the 1 bar patterns until a valid 2+ bar pattern is found.
@@ -204,8 +209,7 @@ start = timeit.default_timer()
 #               [kick snare additional constraints],
 #               [hat placement w/ mild constraints, hat placement w/ moderate contraints, hat additional mild constraints, hat additional moderate constraints],
 #               [percussion placement, percussion mild constraints, percussion moderate constraints]
-#               [ghost snare placement, ghost snare mild constraints, ghost snare moderate constraints], 
-#               [2 bar pattern]]
+#               [ghost snare placement, ghost snare mild constraints, ghost snare moderate constraints] ]
 
 constraints = [ [True, True, True], \
                 [False, True], \

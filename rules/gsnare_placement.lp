@@ -5,5 +5,5 @@ X {chooseHit(g, T) : even(T)} Y :- gSnareMin(X), gSnareMax(Y).
 
 %Hit density parameters.
 
-gSnareMin(0).
-gSnareMax(3).
+%gSnareMin(0).
+%gSnareMax(3).

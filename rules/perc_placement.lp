@@ -5,5 +5,5 @@ X {chooseHit(p, T) : time(T)} Y :- percMin(X), percMax(Y).
 
 %Hit density parameters.
 
-percMin(0).
-percMax(1).
+%percMin(0).
+%percMax(1).
