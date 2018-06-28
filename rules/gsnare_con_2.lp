@@ -6,3 +6,4 @@
 :- chooseHit(g, T-1), chooseHit(k, T), chooseHit(g, T+1).
 :- chooseHit(g, T), chooseHit(s, T-1).
 :- chooseHit(g, T), chooseHit(s, T+1), not chooseHit(g, T-2).
+

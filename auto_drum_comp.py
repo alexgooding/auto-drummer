@@ -38,6 +38,9 @@ class MainWindow(object):
 	gSnareCon1 = True
 	gSnareCon2 = True
 
+	snareConvValue = 0
+	hatConvValue = 0
+
 	kickMin = 0
 	kickMax = 3
 	snareMin = 2
@@ -48,6 +51,12 @@ class MainWindow(object):
 	percMax = 1
 	gSnareMin = 0
 	gSnareMax = 3
+
+	humanisationAmount = 0
+
+	patternLength = 1
+
+	numberOfPatterns = 1
 
 	def setupUi(self, Window):
 		#Create main window
@@ -69,7 +78,7 @@ class MainWindow(object):
 		self.formLayout = QtGui.QFormLayout(self.formLayoutWidget)
 		self.formLayout.setObjectName(_fromUtf8("formLayout"))        
 
-		#Check boxes and sliders
+		#Check boxes, sliders and dials
 		self.kickBox1 = QtGui.QCheckBox(self.formLayoutWidget)
 		self.kickBox1.setObjectName(_fromUtf8("kickBox1"))
 		self.kickBox1.sizeHint()
@@ -222,6 +231,30 @@ class MainWindow(object):
 		self.gSnareMaxSlider.valueChanged.connect(self.g_snare_max)
 		self.gSnareConvSlider.valueChanged.connect(self.g_snare_conv)	
 
+		self.humanisationDial = QtGui.QDial(self.formLayoutWidget)
+		self.humanisationDial.setObjectName(_fromUtf8("humanisationDial"))
+		self.humanisationDial.setRange(0, 50)
+		self.humanisationDial.setValue(0)
+
+		self.humanisationDial.valueChanged.connect(self.humanisation_amount)
+
+		self.patternLengthBox = QtGui.QComboBox(self.formLayoutWidget)
+		self.patternLengthBox.setObjectName(_fromUtf8("patternLengthBox"))
+		self.patternLengthBox.addItem("1")
+		self.patternLengthBox.addItem("2")
+
+		self.patternLengthBox.activated[str].connect(self.pattern_length)
+
+		self.numberOfPatternsBox = QtGui.QSpinBox(self.formLayoutWidget)
+		self.numberOfPatternsBox.setObjectName(_fromUtf8("numberOfPatternsBox"))
+		self.numberOfPatternsBox.setMinimum(1)
+
+		self.numberOfPatternsBox.valueChanged.connect(self.number_of_patterns)
+
+		self.inputBox = QtGui.QLineEdit(self.formLayoutWidget)
+		self.inputBox.setObjectName(_fromUtf8("inputBox"))				
+
+
 		#Create labels
 		
 		self.kickLabel1 = QtGui.QLabel(self.formLayoutWidget)
@@ -267,9 +300,21 @@ class MainWindow(object):
 		self.gSnareLabel3 = QtGui.QLabel(self.formLayoutWidget)
 		self.gSnareLabel3.setObjectName(_fromUtf8("gSnareLabel3"))
 		self.gSnareLabel4 = QtGui.QLabel(self.formLayoutWidget)
-		self.gSnareLabel4.setObjectName(_fromUtf8("gSnareLabel4"))								
+		self.gSnareLabel4.setObjectName(_fromUtf8("gSnareLabel4"))
+
+		self.humanisationLabel = QtGui.QLabel(self.formLayoutWidget)
+		self.humanisationLabel.setObjectName(_fromUtf8("humanisationLabel"))	
+
+		self.patternLengthLabel = QtGui.QLabel(self.formLayoutWidget)
+		self.patternLengthLabel.setObjectName(_fromUtf8("patternLengthLabel"))	
+
+		self.numberOfPatternsLabel = QtGui.QLabel(self.formLayoutWidget)
+		self.numberOfPatternsLabel.setObjectName(_fromUtf8("numberOfPatternsLabel"))
+
+		self.inputBoxLabel = QtGui.QLabel(self.formLayoutWidget)
+		self.inputBoxLabel.setObjectName(_fromUtf8("inputBoxLabel"))							
 		
-    #Generate button
+    	#Generate button
 		self.genBtn = QtGui.QPushButton(self.formLayoutWidget)
 		self.genBtn.setObjectName(_fromUtf8("pushButton"))
 		self.genBtn.sizeHint()
@@ -322,7 +367,19 @@ class MainWindow(object):
 		self.formLayout.setWidget(19, QtGui.QFormLayout.LabelRole, self.gSnareLabel4)
 		self.formLayout.setWidget(19, QtGui.QFormLayout.FieldRole, self.gSnareConvSlider)
 
-		self.formLayout.setWidget(20, QtGui.QFormLayout.FieldRole, self.genBtn)											
+		self.formLayout.setWidget(20, QtGui.QFormLayout.LabelRole, self.humanisationLabel)
+		self.formLayout.setWidget(20, QtGui.QFormLayout.FieldRole, self.humanisationDial)
+
+		self.formLayout.setWidget(21, QtGui.QFormLayout.LabelRole, self.patternLengthLabel)
+		self.formLayout.setWidget(21, QtGui.QFormLayout.FieldRole, self.patternLengthBox)
+
+		self.formLayout.setWidget(22, QtGui.QFormLayout.LabelRole, self.numberOfPatternsLabel)
+		self.formLayout.setWidget(22, QtGui.QFormLayout.FieldRole, self.numberOfPatternsBox)
+
+		self.formLayout.setWidget(23, QtGui.QFormLayout.LabelRole, self.inputBoxLabel)
+		self.formLayout.setWidget(23, QtGui.QFormLayout.FieldRole, self.inputBox)		
+
+		self.formLayout.setWidget(24, QtGui.QFormLayout.FieldRole, self.genBtn)											
 		
 		#Main menu options
 		"""
@@ -378,6 +435,10 @@ class MainWindow(object):
 		self.gSnareLabel2.setText(_translate("Window", "Ghost Snare Density Minimum", None))
 		self.gSnareLabel3.setText(_translate("Window", "Ghost Snare Density Maximum", None))
 		self.gSnareLabel4.setText(_translate("Window", "Ghost Snare Experimentalness", None))
+		self.humanisationLabel.setText(_translate("Window", "Humanisation Amount", None))
+		self.patternLengthLabel.setText(_translate("Window", "Pattern Length", None))
+		self.numberOfPatternsLabel.setText(_translate("Window", "Number of Patterns", None))
+		self.inputBoxLabel.setText(_translate("Window", "User Input", None))
 		#self.menuFile.setTitle(_translate("MainWindow", "File", None))
 		#self.actionExit.setText(_translate("MainWindow", "Exit", None))
 		#self.actionExit.setShortcut(_translate("MainWindow", "Ctrl+Q", None))		
@@ -438,24 +499,7 @@ class MainWindow(object):
 		self.snareMax = self.snareMaxSlider.value()
 
 	def snare_conv(self):
-		value = self.snareConvSlider.value()
-		if self.snarePlacement == False:
-			self.snareExpPlacement = False
-			self.snareConvPlacement = False
-			self.kickSnareCon1 = False
-			return
-		if value == 0:
-			self.snareExpPlacement = False 
-			self.snareConvPlacement = True
-			self.kickSnareCon1 = True
-		if value == 1:
-			self.snareExpPlacement = True 
-			self.snareConvPlacement = False
-			self.kickSnareCon1 = True
-		if value == 2:
-			self.snareExpPlacement = True 
-			self.snareConvPlacement = False
-			self.kickSnareCon1 = False
+		self.snareConvValue = self.snareConvSlider.value()
 
 	def hat_min(self):
 		self.hatExpMin = self.hatMinSlider.value()
@@ -464,33 +508,7 @@ class MainWindow(object):
 		self.hatExpMax = self.hatMaxSlider.value()
 
 	def hat_conv(self):
-		value = self.hatConvSlider.value()
-		if self.hatPlacement == False:
-			self.hatExpPlacement = False
-			self.hatConvPlacement = False
-			self.hatCon1 = False
-			self.hatCon2 = False
-			return
-		if value == 0:
-			self.hatExpPlacement = False 
-			self.hatConvPlacement = True
-			self.hatCon1 = True
-			self.hatCon2 = True
-		if value == 1:
-			self.hatExpPlacement = False 
-			self.hatConvPlacement = True
-			self.hatCon1 = True
-			self.hatCon2 = False
-		if value == 2:
-			self.hatExpPlacement = True 
-			self.hatConvPlacement = False
-			self.hatCon1 = True
-			self.hatCon2 = False
-		if value == 3:
-			self.hatExpPlacement = True 
-			self.hatConvPlacement = False
-			self.hatCon1 = False
-			self.hatCon2 = False
+		self.hatConvValue = self.hatConvSlider.value()
 
 	def perc_min(self):
 		self.percMin = self.percMinSlider.value()
@@ -528,17 +546,63 @@ class MainWindow(object):
 			self.gSnareCon1 = False 
 			self.gSnareCon2 = False
 
-	def generate(self):
-		#Check box checks
+	def humanisation_amount(self):
+		self.humanisationAmount = float(self.humanisationDial.value())/1000
+
+	def pattern_length(self, text):
+		self.patternLength = int(text)
+
+	def number_of_patterns(self):
+		self.numberOfPatterns = self.numberOfPatternsBox.value()
+
+	def constraint_assignment(self):
 		if self.snarePlacement == False:
 			self.snareExpPlacement = False
 			self.snareConvPlacement = False
 			self.kickSnareCon1 = False
+		elif self.snareConvValue == 0:
+			self.snareExpPlacement = False 
+			self.snareConvPlacement = True
+			self.kickSnareCon1 = True
+		elif self.snareConvValue == 1:
+			self.snareExpPlacement = True 
+			self.snareConvPlacement = False
+			self.kickSnareCon1 = True
+		else:
+			self.snareExpPlacement = True 
+			self.snareConvPlacement = False
+			self.kickSnareCon1 = False
+
 		if self.hatPlacement == False:
 			self.hatExpPlacement = False
 			self.hatConvPlacement = False
 			self.hatCon1 = False
 			self.hatCon2 = False
+		elif self.hatConvValue == 0:
+			self.hatExpPlacement = False 
+			self.hatConvPlacement = True
+			self.hatCon1 = True
+			self.hatCon2 = True
+		elif self.hatConvValue == 1:
+			self.hatExpPlacement = False 
+			self.hatConvPlacement = True
+			self.hatCon1 = True
+			self.hatCon2 = False
+		elif self.hatConvValue == 2:
+			self.hatExpPlacement = True 
+			self.hatConvPlacement = False
+			self.hatCon1 = True
+			self.hatCon2 = False
+		else:
+			self.hatExpPlacement = True 
+			self.hatConvPlacement = False
+			self.hatCon1 = False
+			self.hatCon2 = False
+
+	def generate(self):
+
+		self.constraint_assignment()
+
 		constraints = [ [self.kickPlacement, self.kickCon1, self.kickCon2], \
 		                [self.snareExpPlacement, self.snareConvPlacement], \
 		                [self.kickSnareCon1], \
@@ -547,14 +611,16 @@ class MainWindow(object):
 		                [self.gSnarePlacement, self.gSnareCon1, self.gSnareCon2] ]
 
 		#Patterns will be filled out around any user input given to the program.
-		userInput = []
+		#userInput = []
 		inputParameters = ["kickMin(" + str(self.kickMin) + ").", "kickMax(" + str(self.kickMax) + ").", \
 							"snareMin(" + str(self.snareMin) + ").", "snareMax(" + str(self.snareMax) + ").", \
 							"hatExpMin(" + str(self.hatExpMin) + ").", "hatExpMax(" + str(self.hatExpMax) + ").", \
 							"percMin(" + str(self.percMin) + ").", "percMax(" + str(self.percMax) + ").", \
 							"gSnareMin(" + str(self.gSnareMin) + ").", "gSnareMax(" + str(self.gSnareMax) + ")."]
 
-		input = inputParameters + userInput
+		userInput = self.inputBox.text()
+
+		input = inputParameters + [userInput]
 
 		"""
 		print(input)
@@ -562,7 +628,7 @@ class MainWindow(object):
 		print(constraints)
 		print("\n")
 		"""
-		cp.generate_patterns(constraints, 1, 2, 0.01, input)
+		cp.generate_patterns(constraints, self.numberOfPatterns, self.patternLength, self.humanisationAmount, input)
 		#sys.exit()
 
 	def quit(self):
