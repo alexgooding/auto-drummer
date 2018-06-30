@@ -1,5 +1,7 @@
 import sys 
+import os
 from PyQt4 import QtGui, QtCore
+#from matplotlib.backends.backend_qt4agg import NavigationToolbar2QT as NavigationToolbar
 import composer as cp
 
 try:
@@ -17,6 +19,9 @@ except AttributeError:
         return QtGui.QApplication.translate(context, text, disambig)
 
 class MainWindow(object):
+
+	#Generate counter
+	c = 0
 
 	kickPlacement = True
 	snarePlacement = True
@@ -58,6 +63,8 @@ class MainWindow(object):
 
 	numberOfPatterns = 1
 
+	savePath = os.getcwd()
+
 	def setupUi(self, Window):
 		#Create main window
 		Window.setObjectName(_fromUtf8("Window"))
@@ -67,16 +74,46 @@ class MainWindow(object):
 
 		QtGui.QApplication.setStyle("Cleanlooks")
 
-		#Create grid layout
-		self.centralwidget = QtGui.QWidget(Window)
-		self.centralwidget.setObjectName(_fromUtf8("centralwidget"))
-		Window.setCentralWidget(self.centralwidget)
+		#Create layout
+		self.tabLayout = QtGui.QTabWidget(Window)
+		self.tabLayout.setObjectName(_fromUtf8("tabLayout"))
+		self.tabLayout.setGeometry(QtCore.QRect(0, 30, 800, 670))
+		self.tabLayout.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
+		self.tabLayout.setTabPosition(QtGui.QTabWidget.North)
+		self.tabLayout.setTabShape(QtGui.QTabWidget.Rounded)
+		self.tabLayout.setObjectName(_fromUtf8("tabLayout"))
+		self.basicTab = QtGui.QWidget()
+		self.basicTab.setObjectName(_fromUtf8("basicTab"))
+		self.tabLayout.addTab(self.basicTab, _fromUtf8(""))
+		self.advancedTab = QtGui.QWidget()
+		self.advancedTab.setObjectName(_fromUtf8("advancedTab"))
+		self.tabLayout.addTab(self.advancedTab, _fromUtf8(""))
+		self.inputTab = QtGui.QWidget()
+		self.inputTab.setObjectName(_fromUtf8("inputTab"))
+		self.tabLayout.addTab(self.inputTab, _fromUtf8(""))
+		Window.setCentralWidget(self.tabLayout)
 
-		self.formLayoutWidget = QtGui.QWidget(self.centralwidget)
+		self.boxLayoutWidget = QtGui.QWidget(self.basicTab)
+		self.boxLayoutWidget.setGeometry(QtCore.QRect(0, 200, 800, 350))
+		self.boxLayout = QtGui.QVBoxLayout(self.boxLayoutWidget)
+
+		self.formLayoutWidget = QtGui.QWidget(self.advancedTab)
 		self.formLayoutWidget.setGeometry(QtCore.QRect(200, -1, 400, 700))
 		self.formLayoutWidget.setObjectName(_fromUtf8("formLayoutWidget"))
 		self.formLayout = QtGui.QFormLayout(self.formLayoutWidget)
-		self.formLayout.setObjectName(_fromUtf8("formLayout"))        
+		self.formLayout.setObjectName(_fromUtf8("formLayout"))   
+
+		self.formLayoutWidget_2 = QtGui.QWidget(self.basicTab)
+		self.formLayoutWidget_2.setGeometry(QtCore.QRect(200, -1, 400, 700))
+		self.formLayoutWidget_2.setObjectName(_fromUtf8("formLayoutWidget_2"))
+		self.formLayout_2 = QtGui.QFormLayout(self.formLayoutWidget_2)
+		self.formLayout_2.setObjectName(_fromUtf8("formLayout_2"))  
+
+		self.formLayoutWidget_3 = QtGui.QWidget(self.inputTab)
+		self.formLayoutWidget_3.setGeometry(QtCore.QRect(200, -1, 400, 700))
+		self.formLayoutWidget_3.setObjectName(_fromUtf8("formLayoutWidget_3"))
+		self.formLayout_3 = QtGui.QFormLayout(self.formLayoutWidget_3)
+		self.formLayout_3.setObjectName(_fromUtf8("formLayout_3")) 		     
 
 		#Check boxes, sliders and dials
 		self.kickBox1 = QtGui.QCheckBox(self.formLayoutWidget)
@@ -238,20 +275,24 @@ class MainWindow(object):
 
 		self.humanisationDial.valueChanged.connect(self.humanisation_amount)
 
-		self.patternLengthBox = QtGui.QComboBox(self.formLayoutWidget)
+		self.patternLengthBox = QtGui.QComboBox(self.formLayoutWidget_2)
 		self.patternLengthBox.setObjectName(_fromUtf8("patternLengthBox"))
 		self.patternLengthBox.addItem("1")
 		self.patternLengthBox.addItem("2")
 
 		self.patternLengthBox.activated[str].connect(self.pattern_length)
 
-		self.numberOfPatternsBox = QtGui.QSpinBox(self.formLayoutWidget)
+		self.numberOfPatternsBox = QtGui.QSpinBox(self.formLayoutWidget_2)
 		self.numberOfPatternsBox.setObjectName(_fromUtf8("numberOfPatternsBox"))
 		self.numberOfPatternsBox.setMinimum(1)
 
 		self.numberOfPatternsBox.valueChanged.connect(self.number_of_patterns)
 
-		self.inputBox = QtGui.QLineEdit(self.formLayoutWidget)
+		self.saveNameBox = QtGui.QLineEdit(self.formLayoutWidget_2)
+		self.saveNameBox.setObjectName(_fromUtf8("saveNameBox"))	
+		self.saveNameBox.setText("drum_pattern")
+
+		self.inputBox = QtGui.QLineEdit(self.formLayoutWidget_3)
 		self.inputBox.setObjectName(_fromUtf8("inputBox"))				
 
 
@@ -305,17 +346,20 @@ class MainWindow(object):
 		self.humanisationLabel = QtGui.QLabel(self.formLayoutWidget)
 		self.humanisationLabel.setObjectName(_fromUtf8("humanisationLabel"))	
 
-		self.patternLengthLabel = QtGui.QLabel(self.formLayoutWidget)
+		self.patternLengthLabel = QtGui.QLabel(self.formLayoutWidget_2)
 		self.patternLengthLabel.setObjectName(_fromUtf8("patternLengthLabel"))	
 
-		self.numberOfPatternsLabel = QtGui.QLabel(self.formLayoutWidget)
+		self.numberOfPatternsLabel = QtGui.QLabel(self.formLayoutWidget_2)
 		self.numberOfPatternsLabel.setObjectName(_fromUtf8("numberOfPatternsLabel"))
 
-		self.inputBoxLabel = QtGui.QLabel(self.formLayoutWidget)
+		self.saveNameBoxLabel = QtGui.QLabel(self.formLayoutWidget_2)
+		self.saveNameBoxLabel.setObjectName(_fromUtf8("saveNameBoxLabel"))
+
+		self.inputBoxLabel = QtGui.QLabel(self.formLayoutWidget_3)
 		self.inputBoxLabel.setObjectName(_fromUtf8("inputBoxLabel"))							
 		
     	#Generate button
-		self.genBtn = QtGui.QPushButton(self.formLayoutWidget)
+		self.genBtn = QtGui.QPushButton(self.formLayoutWidget_2)
 		self.genBtn.setObjectName(_fromUtf8("pushButton"))
 		self.genBtn.sizeHint()
 		self.genBtn.clicked.connect(self.generate)
@@ -370,25 +414,34 @@ class MainWindow(object):
 		self.formLayout.setWidget(20, QtGui.QFormLayout.LabelRole, self.humanisationLabel)
 		self.formLayout.setWidget(20, QtGui.QFormLayout.FieldRole, self.humanisationDial)
 
-		self.formLayout.setWidget(21, QtGui.QFormLayout.LabelRole, self.patternLengthLabel)
-		self.formLayout.setWidget(21, QtGui.QFormLayout.FieldRole, self.patternLengthBox)
+		self.formLayout_2.setWidget(1, QtGui.QFormLayout.LabelRole, self.patternLengthLabel)
+		self.formLayout_2.setWidget(1, QtGui.QFormLayout.FieldRole, self.patternLengthBox)
 
-		self.formLayout.setWidget(22, QtGui.QFormLayout.LabelRole, self.numberOfPatternsLabel)
-		self.formLayout.setWidget(22, QtGui.QFormLayout.FieldRole, self.numberOfPatternsBox)
+		self.formLayout_2.setWidget(2, QtGui.QFormLayout.LabelRole, self.numberOfPatternsLabel)
+		self.formLayout_2.setWidget(2, QtGui.QFormLayout.FieldRole, self.numberOfPatternsBox)
 
-		self.formLayout.setWidget(23, QtGui.QFormLayout.LabelRole, self.inputBoxLabel)
-		self.formLayout.setWidget(23, QtGui.QFormLayout.FieldRole, self.inputBox)		
+		self.formLayout_2.setWidget(3, QtGui.QFormLayout.LabelRole, self.saveNameBoxLabel)
+		self.formLayout_2.setWidget(3, QtGui.QFormLayout.FieldRole, self.saveNameBox)		
 
-		self.formLayout.setWidget(24, QtGui.QFormLayout.FieldRole, self.genBtn)											
-		
+		self.formLayout_2.setWidget(4, QtGui.QFormLayout.FieldRole, self.genBtn)
+
+		#self.formLayout_2.setWidget(5, QtGui.QFormLayout.FieldRole, self.boxLayout)	
+
+		self.formLayout_3.setWidget(1, QtGui.QFormLayout.LabelRole, self.inputBoxLabel)
+		self.formLayout_3.setWidget(1, QtGui.QFormLayout.FieldRole, self.inputBox)	
+
 		#Main menu options
-		"""
-		quitAction = QtGui.QAction("&Quit", Window)
-		quitAction.setShortcut("Ctrl+Q")
-		quitAction.setStatusTip("Leave The App")
-		quitAction.triggered.connect(self.exit)
-		
+
+		self.actionExit = QtGui.QAction(Window)
+		self.actionExit.setObjectName(_fromUtf8("actionExit"))
+		self.actionExit.triggered.connect(self.quit)
+
+		self.actionPath = QtGui.QAction(Window)
+		self.actionPath.setObjectName(_fromUtf8("actionPath"))
+		self.actionPath.triggered.connect(self.pick_path)
+
 		#Create main menu
+
 		self.menubar = QtGui.QMenuBar(Window)
 		self.menubar.setGeometry(QtCore.QRect(0, 0, 800, 21))
 		self.menubar.setObjectName(_fromUtf8("menubar"))
@@ -398,12 +451,12 @@ class MainWindow(object):
 		self.statusbar = QtGui.QStatusBar(Window)
 		self.statusbar.setObjectName(_fromUtf8("statusbar"))
 		Window.setStatusBar(self.statusbar)
-		self.actionExit = QtGui.QAction(Window)
-		self.actionExit.setObjectName(_fromUtf8("actionExit"))
-		self.actionExit.triggered.connect(self.quit)
+
+		self.menuFile.addAction(self.actionPath)
+		self.menuFile.addSeparator()
 		self.menuFile.addAction(self.actionExit)
-		self.menubar.addAction(self.menuFile.menuAction())
-		"""
+		self.menubar.addAction(self.menuFile.menuAction())		
+		
 		self.retranslateUi(Window)
 
 
@@ -438,10 +491,15 @@ class MainWindow(object):
 		self.humanisationLabel.setText(_translate("Window", "Humanisation Amount", None))
 		self.patternLengthLabel.setText(_translate("Window", "Pattern Length", None))
 		self.numberOfPatternsLabel.setText(_translate("Window", "Number of Patterns", None))
+		self.saveNameBoxLabel.setText(_translate("Window", "File Save Name", None))
 		self.inputBoxLabel.setText(_translate("Window", "User Input", None))
-		#self.menuFile.setTitle(_translate("MainWindow", "File", None))
-		#self.actionExit.setText(_translate("MainWindow", "Exit", None))
-		#self.actionExit.setShortcut(_translate("MainWindow", "Ctrl+Q", None))		
+		self.menuFile.setTitle(_translate("Window", "File", None))
+		self.actionExit.setText(_translate("Window", "Exit", None))
+		self.actionExit.setShortcut(_translate("Window", "Ctrl+Q", None))
+		self.actionPath.setText(_translate("Window", "Choose Save Location", None))		
+		self.tabLayout.setTabText(self.tabLayout.indexOf(self.basicTab), _translate("Window", "Basic", None))
+		self.tabLayout.setTabText(self.tabLayout.indexOf(self.advancedTab), _translate("Window", "Advanced", None))
+		self.tabLayout.setTabText(self.tabLayout.indexOf(self.inputTab), _translate("Window", "Pattern Input", None))
 
 	#Constraint variable assignment methods	
 	def kick_placement(self, state):
@@ -599,6 +657,11 @@ class MainWindow(object):
 			self.hatCon1 = False
 			self.hatCon2 = False
 
+	def pick_path(self):
+		dialog = QtGui.QFileDialog()
+		folder_path = dialog.getExistingDirectory(None, "Select Folder")
+		self.savePath = folder_path
+
 	def generate(self):
 
 		self.constraint_assignment()
@@ -620,6 +683,8 @@ class MainWindow(object):
 
 		userInput = self.inputBox.text()
 
+		saveName = self.saveNameBox.text()
+
 		input = inputParameters + [userInput]
 
 		"""
@@ -628,11 +693,22 @@ class MainWindow(object):
 		print(constraints)
 		print("\n")
 		"""
-		cp.generate_patterns(constraints, self.numberOfPatterns, self.patternLength, self.humanisationAmount, input)
-		#sys.exit()
+		if self.c != 0:
+			self.boxLayout.removeWidget(self.patternPlot)
+			self.patternPlot.deleteLater()
+			self.patternPlot = None
+
+		self.patternPlot = cp.generate_patterns(constraints, self.savePath, saveName, self.numberOfPatterns, self.patternLength, self.humanisationAmount, input)
+
+		#self.toolbar = NavigationToolbar(patternPlot, self.boxLayoutWidget)
+
+		self.boxLayout.addWidget(self.patternPlot)
+		#self.boxLayout.addWidget(self.toolbar)
+
+		self.c += 1
 
 	def quit(self):
-		choice = QtGui.QMessageBox.question(self, "Exit",
+		choice = QtGui.QMessageBox.question(None, "Exit",
 											"Are you sure you want to exit the program?", 
 											QtGui.QMessageBox.Yes | QtGui.QMessageBox.No)
 		if choice == QtGui.QMessageBox.Yes:

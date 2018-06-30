@@ -1,8 +1,11 @@
 #cell 0
 import subprocess
+from os.path import join as pjoin
 import json
 from midiutil import MIDIFile
 import numpy as np
+from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.figure import Figure
 
 #Configure Clingo parameters
 
@@ -59,7 +62,7 @@ def generate_solutions(constraints, user_input):
 
     return solutions
 
-"""
+
 #cell 3
 #Represent hit_list as a table.
 
@@ -69,24 +72,32 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import AutoMinorLocator
 from matplotlib.ticker import FixedLocator
 
-def print_hits(pattern_index, hit_list, pattern_length = 1):
+def print_hits(pattern_index, hit_list, humanisation, pattern_length = 1): 
 
-    X = np.ones((5, 16 * pattern_length))
+    X = np.zeros((5, 16 * pattern_length))
+
+    #iterator
+    j = 0
 
     for i in hit_list:
         if i[0] == 'k':
-            X[4][int(i[1])-1] = 0
+            X[4][int(i[1])-1] = 1./(volume-abs(humanisation[j])*300)
         if i[0] == 's':
-            X[3][int(i[1])-1] = 0.2
+            X[3][int(i[1])-1] = 1./(volume-abs(humanisation[j])*300)
         if i[0] == 'g':
-            X[2][int(i[1])-1] = 0.4
+            X[2][int(i[1])-1] = 1./(40-abs(humanisation[j])*300)
         if i[0] == 'h':
-            X[1][int(i[1])-1] = 0.6
+            X[1][int(i[1])-1] = 1./(volume-abs(humanisation[j])*300)
         if i[0] == 'p':
-            X[0][int(i[1])-1] = 0.8
+            X[0][int(i[1])-1] = 1./(volume-abs(humanisation[j])*300)
+        j += 1
 
+    normalValue = np.amax(X) + 0.005
+    X[X == 0] = normalValue
+
+    #plt.style.use('ggplot')
     fig, ax = plt.subplots(figsize=(10, 10))
-    ax.imshow(X, cmap=plt.get_cmap('gray'))
+    ax.imshow(X, cmap=plt.get_cmap('gist_gray'))
 
     y_labels = ['Percussion', 'Hat', 'Ghost Snare', 'Snare', 'Kick']
     ax.set_xticks(list(range(0, 16 * pattern_length)))
@@ -99,10 +110,20 @@ def print_hits(pattern_index, hit_list, pattern_length = 1):
     ax.xaxis.set_minor_locator(minor_xlocator)
     ax.yaxis.set_minor_locator(minor_ylocator)
     ax.grid(which='minor', color='0.4', linestyle='dashed')
-    ax.set_title("Pattern " + str(pattern_index), fontsize=18)
+    
+    fig.patch.set_facecolor("None")
+    #ax.set_title("Pattern " + str(pattern_index), fontsize=18)
 
-    plt.show()
-"""
+    #plt.show()
+
+    canvas = FigureCanvas(fig)
+
+    canvas.setStyleSheet("background-color:transparent;")
+
+    canvas.draw()
+
+    return canvas
+
 
 #cell 4
 #Create MIDI representation of the drum pattern.
@@ -116,15 +137,10 @@ tempo    = 174  # In BPM
 volume   = 100  # 0-127, as per the MIDI standard
 
 #Write a MIDI file for a set of hits with a given file name.
-def write_midi(hit_list, file_name, humanisation_intensity = 0):
+def write_midi(hit_list, savePath, file_name, humanisation):
     MyMIDI = MIDIFile(1)  # One track, defaults to format 1 (tempo track is created
                           # automatically)
     MyMIDI.addTempo(track, 0, tempo)
-    
-    #humanisation value to randomly nudge hits around and change velocity.
-    #The further away from 0 the hit is nudged, the quieter it is hit.
-    humanisation = np.random.normal(0, humanisation_intensity, len(hit_list))
-    humanisation[0] = 0
 
     #iterator
     j = 0
@@ -142,7 +158,8 @@ def write_midi(hit_list, file_name, humanisation_intensity = 0):
             MyMIDI.addNote(track, channel, 63, float(i[1])/4-offset+humanisation[j], duration, int(volume-abs(humanisation[j])*300))
         j += 1
             
-    with open(file_name, "wb") as output_file:
+    filePath = pjoin(savePath, file_name)
+    with open(filePath, "wb") as output_file:
         MyMIDI.writeFile(output_file)
 
 #cell 5
@@ -169,11 +186,12 @@ def extend_pattern(pattern, extended_length):
 #cell 6
 #Generate n random patterns from the answer set, depending on the rules chosen and any user input.
 #A level of humanisation is chosen between 0 and 0.05. 
-#Print and store solutions as MIDI files. Defaults to 1 pattern of length 1 bar with no user input.
+#Print and store solutions as MIDI files in the save path with a defined file name. Defaults to 1 pattern of length 1 bar with no user input.
 from random import randint
 
-def generate_patterns(constraints, n = 1, pattern_length = 1, humanisation_intensity = 0, user_input = None):
+def generate_patterns(constraints, savePath, fileName, n = 1, pattern_length = 1, humanisation_intensity = 0, user_input = None):
     solutions = generate_solutions(constraints, user_input)
+    patternPlot = None
     if solutions is None:
         return 
     for i in range(1, n+1):
@@ -191,9 +209,19 @@ def generate_patterns(constraints, n = 1, pattern_length = 1, humanisation_inten
         for hit in rand_solution:
             hit_list.append(hit[hit.find("(")+1:hit.find(")")].split(","))
 
-        #print_hits(rand_index, hit_list, pattern_length)
-        #print("\n")
-        write_midi(hit_list, "test_pattern_" + str(i) +".mid", humanisation_intensity)
+        #humanisation value to randomly nudge hits around and change velocity.
+        #The further away from 0 the hit is nudged, the quieter it is hit.
+        humanisation = np.random.normal(0, humanisation_intensity, len(hit_list))
+        humanisation[0] = 0
+
+        patternPlot = print_hits(rand_index, hit_list, humanisation, pattern_length)
+        print("\n")
+        if i == 1:
+            write_midi(hit_list, savePath, fileName + ".mid", humanisation)
+        else:
+            write_midi(hit_list, savePath, fileName + "_" + str(i-1) + ".mid", humanisation)
+
+    return patternPlot
 
 #cell 7
 
