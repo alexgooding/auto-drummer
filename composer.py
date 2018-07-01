@@ -147,20 +147,38 @@ def write_midi(hit_list, savePath, file_name, humanisation):
     #Add kicks to middle C, snares to C#3 and hats to D3.
     for i in hit_list:
         if i[0] == 'k':
-            MyMIDI.addNote(track, channel, 60, float(i[1])/4-offset+humanisation[j], duration, int(volume-abs(humanisation[j])*300))
+            if i[1] == '1':
+                MyMIDI.addNote(track, channel, 60, float(i[1])/4-offset, duration, int(volume-abs(humanisation[j])*300))
+            else:
+                MyMIDI.addNote(track, channel, 60, float(i[1])/4-offset+humanisation[j], duration, int(volume-abs(humanisation[j])*300))
         if i[0] == 's':
-            MyMIDI.addNote(track, channel, 61, float(i[1])/4-offset+humanisation[j], duration, int(volume-abs(humanisation[j])*300))
+            if i[1] == '1':
+                MyMIDI.addNote(track, channel, 61, float(i[1])/4-offset, duration, int(volume-abs(humanisation[j])*300))
+            else:
+                MyMIDI.addNote(track, channel, 61, float(i[1])/4-offset+humanisation[j], duration, int(volume-abs(humanisation[j])*300))
         if i[0] == 'g':
-            MyMIDI.addNote(track, channel, 61, float(i[1])/4-offset+humanisation[j], duration, int(40-abs(humanisation[j])*300))
+            if i[1] == '1':
+                MyMIDI.addNote(track, channel, 61, float(i[1])/4-offset, duration, int(40-abs(humanisation[j])*300))
+            else:
+                MyMIDI.addNote(track, channel, 61, float(i[1])/4-offset+humanisation[j], duration, int(40-abs(humanisation[j])*300))
         if i[0] == 'h':
-            MyMIDI.addNote(track, channel, 62, float(i[1])/4-offset+humanisation[j], duration, int(volume-abs(humanisation[j])*300))
+            if i[1] == '1':
+                MyMIDI.addNote(track, channel, 62, float(i[1])/4-offset, duration, int(volume-abs(humanisation[j])*300))
+            else:
+                MyMIDI.addNote(track, channel, 62, float(i[1])/4-offset+humanisation[j], duration, int(volume-abs(humanisation[j])*300))
         if i[0] == 'p':
-            MyMIDI.addNote(track, channel, 63, float(i[1])/4-offset+humanisation[j], duration, int(volume-abs(humanisation[j])*300))
+            if i[1] == '1':
+                MyMIDI.addNote(track, channel, 63, float(i[1])/4-offset, duration, int(volume-abs(humanisation[j])*300))
+            else:
+                MyMIDI.addNote(track, channel, 63, float(i[1])/4-offset+humanisation[j], duration, int(volume-abs(humanisation[j])*300))
         j += 1
             
     filePath = pjoin(savePath, file_name)
     with open(filePath, "wb") as output_file:
         MyMIDI.writeFile(output_file)
+
+    print(hit_list)
+    print(humanisation)
 
 #cell 5
 def extend_pattern(pattern, extended_length):
@@ -212,7 +230,6 @@ def generate_patterns(constraints, savePath, fileName, n = 1, pattern_length = 1
         #humanisation value to randomly nudge hits around and change velocity.
         #The further away from 0 the hit is nudged, the quieter it is hit.
         humanisation = np.random.normal(0, humanisation_intensity, len(hit_list))
-        humanisation[0] = 0
 
         patternPlot = print_hits(rand_index, hit_list, humanisation, pattern_length)
         print("\n")
