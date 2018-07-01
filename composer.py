@@ -177,9 +177,6 @@ def write_midi(hit_list, savePath, file_name, humanisation):
     with open(filePath, "wb") as output_file:
         MyMIDI.writeFile(output_file)
 
-    print(hit_list)
-    print(humanisation)
-
 #cell 5
 def extend_pattern(pattern, extended_length):
     two_bar_rules = ['rules\\time.lp', 'rules\\kick_snare_con_1.lp', 'rules\\hat_con_1.lp', 'rules\\hat_con_2.lp', 'rules\\perc_con_1.lp', 'rules\\perc_con_2.lp', 'rules\\gsnare_con_1.lp', 'rules\\gsnare_con_2.lp', 'rules\\extend_to_2_bars.lp']
