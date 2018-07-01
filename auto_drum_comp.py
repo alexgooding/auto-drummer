@@ -23,6 +23,12 @@ class MainWindow(object):
 	#Generate counter
 	c = 0
 
+	#At least one pattern generated boolean
+	success = True
+
+	#No patterns generated
+	fail = False
+
 	kickPlacement = True
 	snarePlacement = True
 	snareExpPlacement = False
@@ -63,6 +69,11 @@ class MainWindow(object):
 
 	numberOfPatterns = 1
 
+	buttonBools = {}
+	for i in range(5):
+		for j in range(16):
+			buttonBools[(i, j)] = False
+
 	savePath = os.getcwd()
 
 	def setupUi(self, Window):
@@ -93,6 +104,10 @@ class MainWindow(object):
 		self.tabLayout.addTab(self.inputTab, _fromUtf8(""))
 		Window.setCentralWidget(self.tabLayout)
 
+		self.gridLayoutWidget = QtGui.QWidget(self.inputTab)
+		self.gridLayoutWidget.setGeometry(QtCore.QRect(0, 200, 800, 180))
+		self.gridLayout = QtGui.QGridLayout(self.gridLayoutWidget)
+
 		self.boxLayoutWidget = QtGui.QWidget(self.basicTab)
 		self.boxLayoutWidget.setGeometry(QtCore.QRect(0, 200, 800, 350))
 		self.boxLayout = QtGui.QVBoxLayout(self.boxLayoutWidget)
@@ -109,13 +124,14 @@ class MainWindow(object):
 		self.formLayout_2 = QtGui.QFormLayout(self.formLayoutWidget_2)
 		self.formLayout_2.setObjectName(_fromUtf8("formLayout_2"))  
 
+		"""
 		self.formLayoutWidget_3 = QtGui.QWidget(self.inputTab)
 		self.formLayoutWidget_3.setGeometry(QtCore.QRect(200, -1, 400, 700))
 		self.formLayoutWidget_3.setObjectName(_fromUtf8("formLayoutWidget_3"))
 		self.formLayout_3 = QtGui.QFormLayout(self.formLayoutWidget_3)
 		self.formLayout_3.setObjectName(_fromUtf8("formLayout_3")) 		     
-
-		#Check boxes, sliders and dials
+		"""
+		#Check boxes, sliders, dials, buttons and text boxes
 		self.kickBox1 = QtGui.QCheckBox(self.formLayoutWidget)
 		self.kickBox1.setObjectName(_fromUtf8("kickBox1"))
 		self.kickBox1.sizeHint()
@@ -291,10 +307,46 @@ class MainWindow(object):
 		self.saveNameBox = QtGui.QLineEdit(self.formLayoutWidget_2)
 		self.saveNameBox.setObjectName(_fromUtf8("saveNameBox"))	
 		self.saveNameBox.setText("drum_pattern")
-
+		"""
 		self.inputBox = QtGui.QLineEdit(self.formLayoutWidget_3)
-		self.inputBox.setObjectName(_fromUtf8("inputBox"))				
+		self.inputBox.setObjectName(_fromUtf8("inputBox"))
+		"""
+		self.inputButtons = {}
 
+		for i in range(5):
+		    for j in range(16):
+		        # keep a reference to the buttons
+		        index = (i, j)
+		        self.inputButtons[index] = QtGui.QPushButton()#'%d, %d' % index)
+		        self.inputButtons[index].clicked.connect(self.make_toggle_input(index))
+		        #self.inputButtons[index].setEnabled(True)
+		        # add to the layout
+		        self.gridLayout.addWidget(self.inputButtons[index], i, j + 1)
+
+		self.inputButtonLabels = {}
+		for i in range(16):
+			labelName = str(i + 1)
+			label = QtGui.QLabel(labelName)
+			label.setAlignment(QtCore.Qt.AlignCenter)
+			self.inputButtonLabels[i] = label
+			self.gridLayout.addWidget(self.inputButtonLabels[i], 5, i + 1)
+
+		self.kickInputLabel = QtGui.QLabel("Kick")
+		self.gridLayout.addWidget(self.kickInputLabel, 0, 0)
+		self.snareInputLabel = QtGui.QLabel("Snare")
+		self.gridLayout.addWidget(self.snareInputLabel, 1, 0)
+		self.hatInputLabel = QtGui.QLabel("Hi-Hat")
+		self.gridLayout.addWidget(self.hatInputLabel, 2, 0)
+		self.percInputLabel = QtGui.QLabel("Percussion")
+		self.gridLayout.addWidget(self.percInputLabel, 3, 0)
+		self.gSnareInputLabel = QtGui.QLabel("Ghost Snare")
+		self.gridLayout.addWidget(self.gSnareInputLabel, 4, 0)
+
+		self.genBtn = QtGui.QPushButton(self.formLayoutWidget_2)
+		self.genBtn.setObjectName(_fromUtf8("pushButton"))
+		self.genBtn.sizeHint()
+		self.genBtn.clicked.connect(self.generate)
+		self.genBtn.resize(self.genBtn.sizeHint())
 
 		#Create labels
 		
@@ -355,16 +407,9 @@ class MainWindow(object):
 		self.saveNameBoxLabel = QtGui.QLabel(self.formLayoutWidget_2)
 		self.saveNameBoxLabel.setObjectName(_fromUtf8("saveNameBoxLabel"))
 
-		self.inputBoxLabel = QtGui.QLabel(self.formLayoutWidget_3)
-		self.inputBoxLabel.setObjectName(_fromUtf8("inputBoxLabel"))							
+		#self.inputBoxLabel = QtGui.QLabel(self.formLayoutWidget_3)
+		#self.inputBoxLabel.setObjectName(_fromUtf8("inputBoxLabel"))							
 		
-    	#Generate button
-		self.genBtn = QtGui.QPushButton(self.formLayoutWidget_2)
-		self.genBtn.setObjectName(_fromUtf8("pushButton"))
-		self.genBtn.sizeHint()
-		self.genBtn.clicked.connect(self.generate)
-		self.genBtn.resize(self.genBtn.sizeHint())
-
 		#Add objects to formLayout	
 		self.formLayout.setWidget(0, QtGui.QFormLayout.LabelRole, self.kickLabel1)
 		self.formLayout.setWidget(0, QtGui.QFormLayout.FieldRole, self.kickBox1)
@@ -427,8 +472,8 @@ class MainWindow(object):
 
 		#self.formLayout_2.setWidget(5, QtGui.QFormLayout.FieldRole, self.boxLayout)	
 
-		self.formLayout_3.setWidget(1, QtGui.QFormLayout.LabelRole, self.inputBoxLabel)
-		self.formLayout_3.setWidget(1, QtGui.QFormLayout.FieldRole, self.inputBox)	
+		#self.formLayout_3.setWidget(1, QtGui.QFormLayout.LabelRole, self.inputBoxLabel)
+		#self.formLayout_3.setWidget(1, QtGui.QFormLayout.FieldRole, self.inputBox)	
 
 		#Main menu options
 
@@ -492,7 +537,7 @@ class MainWindow(object):
 		self.patternLengthLabel.setText(_translate("Window", "Pattern Length", None))
 		self.numberOfPatternsLabel.setText(_translate("Window", "Number of Patterns", None))
 		self.saveNameBoxLabel.setText(_translate("Window", "File Save Name", None))
-		self.inputBoxLabel.setText(_translate("Window", "User Input", None))
+		#self.inputBoxLabel.setText(_translate("Window", "User Input", None))
 		self.menuFile.setTitle(_translate("Window", "File", None))
 		self.actionExit.setText(_translate("Window", "Exit", None))
 		self.actionExit.setShortcut(_translate("Window", "Ctrl+Q", None))
@@ -662,6 +707,42 @@ class MainWindow(object):
 		folder_path = dialog.getExistingDirectory(None, "Select Folder")
 		self.savePath = folder_path
 
+	def make_toggle_input(self, index):
+		def toggle_input():
+			if self.buttonBools[index] == True:
+				self.inputButtons[index].setStyleSheet("")
+				self.buttonBools[index] = False
+			else:
+				self.inputButtons[index].setStyleSheet("background-color: black")
+				self.buttonBools[index] = True
+		return toggle_input
+
+	def determine_input(self):
+		input = ""
+		for i in range(16):
+			label = i + 1
+			if self.buttonBools[(0, i)] == True:
+				input += "chooseHit(k, " + str(label) + "). "
+		for i in range(16):
+			label = i + 1
+			if self.buttonBools[(1, i)] == True:
+				input += "chooseHit(s, " + str(label) + "). "
+		for i in range(16):
+			label = i + 1
+			if self.buttonBools[(2, i)] == True:
+				input += "chooseHit(h, " + str(label) + "). "
+		for i in range(16):
+			label = i + 1
+			if self.buttonBools[(3, i)] == True:
+				input += "chooseHit(p, " + str(label) + "). "
+		for i in range(16):
+			label = i + 1
+			if self.buttonBools[(4, i)] == True:
+				input += "chooseHit(g, " + str(label) + "). "	
+
+		return input
+
+
 	def generate(self):
 
 		self.constraint_assignment()
@@ -681,7 +762,7 @@ class MainWindow(object):
 							"percMin(" + str(self.percMin) + ").", "percMax(" + str(self.percMax) + ").", \
 							"gSnareMin(" + str(self.gSnareMin) + ").", "gSnareMax(" + str(self.gSnareMax) + ")."]
 
-		userInput = self.inputBox.text()
+		userInput = self.determine_input()
 
 		saveName = self.saveNameBox.text()
 
@@ -693,19 +774,31 @@ class MainWindow(object):
 		print(constraints)
 		print("\n")
 		"""
-		if self.c != 0:
+		if self.success and self.fail == False and self.c != 0:
 			self.boxLayout.removeWidget(self.patternPlot)
 			self.patternPlot.deleteLater()
 			self.patternPlot = None
 
 		self.patternPlot = cp.generate_patterns(constraints, self.savePath, saveName, self.numberOfPatterns, self.patternLength, self.humanisationAmount, input)
 
-		#self.toolbar = NavigationToolbar(patternPlot, self.boxLayoutWidget)
-
-		self.boxLayout.addWidget(self.patternPlot)
-		#self.boxLayout.addWidget(self.toolbar)
-
-		self.c += 1
+		#Plotting the pattern generated if one exists
+		if self.patternPlot == None:
+			if self.fail == False:
+				self.nullLabel = QtGui.QLabel("No patterns have been found.")
+				self.nullLabel.setAlignment(QtCore.Qt.AlignCenter)
+				self.nullLabel.setFont(QtGui.QFont("Verdana", 24))
+				self.boxLayout.addWidget(self.nullLabel)
+			self.fail = True
+		else:
+			if self.fail:
+				self.boxLayout.removeWidget(self.nullLabel)
+				self.nullLabel.deleteLater()
+				self.nullLabel = None				
+			self.boxLayout.addWidget(self.patternPlot)
+			self.success = True
+			self.fail = False
+			self.c += 1
+			
 
 	def quit(self):
 		choice = QtGui.QMessageBox.question(None, "Exit",
