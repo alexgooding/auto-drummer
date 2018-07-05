@@ -9,8 +9,8 @@ from matplotlib.figure import Figure
 
 #Configure Clingo parameters
 
-clingo_path = 'C:\\Users\\Alex\\Documents\\MSc Computer Science\\ASP\\clingo.exe'
-clingo_options = ['--outf=2','-n 0']
+clingo_path = 'C:\\Users\\lenovo\\Documents\\MSc Computer Science\\ASP\\clingo.exe'
+clingo_options = ['--outf=2','-n 0', '--time-limit=10']
 clingo_command = [clingo_path] + clingo_options
 
 #Solve the ruleset.

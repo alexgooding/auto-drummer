@@ -1,7 +1,7 @@
 import sys 
 import os
 from PyQt4 import QtGui, QtCore
-#from matplotlib.backends.backend_qt4agg import NavigationToolbar2QT as NavigationToolbar
+from midi2audio import FluidSynth #Also requires fluidsynth install
 import composer as cp
 
 try:
@@ -79,7 +79,7 @@ class MainWindow(object):
 	def setupUi(self, Window):
 		#Create main window
 		Window.setObjectName(_fromUtf8("Window"))
-		Window.resize(800, 700)
+		Window.resize(800, 800)
 		Window.setWindowTitle("Automatic Drum Composer")
 		Window.setWindowIcon(QtGui.QIcon('UI/drumkit_icon_small.png'))
 
@@ -348,6 +348,12 @@ class MainWindow(object):
 		self.genBtn.clicked.connect(self.generate)
 		self.genBtn.resize(self.genBtn.sizeHint())
 
+		self.playBtn = QtGui.QPushButton(self.formLayoutWidget_2)
+		self.playBtn.setObjectName(_fromUtf8("pushButton_2"))
+		self.playBtn.sizeHint()
+		self.playBtn.clicked.connect(self.play_audio)
+		self.playBtn.resize(self.genBtn.sizeHint())
+
 		#Create labels
 		
 		self.kickLabel1 = QtGui.QLabel(self.formLayoutWidget)
@@ -468,7 +474,9 @@ class MainWindow(object):
 		self.formLayout_2.setWidget(3, QtGui.QFormLayout.LabelRole, self.saveNameBoxLabel)
 		self.formLayout_2.setWidget(3, QtGui.QFormLayout.FieldRole, self.saveNameBox)		
 
-		self.formLayout_2.setWidget(4, QtGui.QFormLayout.FieldRole, self.genBtn)
+		self.formLayout_2.setWidget(4, QtGui.QFormLayout.LabelRole, self.genBtn)
+		self.formLayout_2.setWidget(4, QtGui.QFormLayout.FieldRole, self.playBtn)
+		self.playBtn.setVisible(False)
 
 		#self.formLayout_2.setWidget(5, QtGui.QFormLayout.FieldRole, self.boxLayout)	
 
@@ -513,6 +521,7 @@ class MainWindow(object):
 		self.percBox1.setText(_translate("Window", "Percussion", None))
 		self.gSnareBox1.setText(_translate("Window", "Ghost Snare", None))
 		self.genBtn.setText(_translate("Window", "Generate", None))
+		self.playBtn.setText(_translate("Window", "Play", None))
 		self.kickLabel1.setText(_translate("Window", "Kick Toggle", None))
 		self.kickLabel2.setText(_translate("Window", "Kick Density Minimum", None))
 		self.kickLabel3.setText(_translate("Window", "Kick Density Maximum", None))
@@ -742,6 +751,9 @@ class MainWindow(object):
 
 		return input
 
+	def play_audio(self):
+		midiPath = self.savePath + "\\" + self.saveName + ".mid"
+		FluidSynth('Soundfont\\dnb_kit.sf2').play_midi(midiPath)
 
 	def generate(self):
 
@@ -764,7 +776,7 @@ class MainWindow(object):
 
 		userInput = self.determine_input()
 
-		saveName = self.saveNameBox.text()
+		self.saveName = self.saveNameBox.text()
 
 		input = inputParameters + [userInput]
 
@@ -779,7 +791,12 @@ class MainWindow(object):
 			self.patternPlot.deleteLater()
 			self.patternPlot = None
 
-		self.patternPlot = cp.generate_patterns(constraints, self.savePath, saveName, self.numberOfPatterns, self.patternLength, self.humanisationAmount, input)
+			self.playBtn.setVisible(False)
+
+		self.patternPlot = cp.generate_patterns(constraints, self.savePath, self.saveName, self.numberOfPatterns, self.patternLength, self.humanisationAmount, input)
+
+		#Allow user to see the play button
+		self.playBtn.setVisible(True)
 
 		#Plotting the pattern generated if one exists
 		if self.patternPlot == None:
@@ -788,6 +805,7 @@ class MainWindow(object):
 				self.nullLabel.setAlignment(QtCore.Qt.AlignCenter)
 				self.nullLabel.setFont(QtGui.QFont("Verdana", 24))
 				self.boxLayout.addWidget(self.nullLabel)
+			self.playBtn.setVisible(False)
 			self.fail = True
 		else:
 			if self.fail:
@@ -798,7 +816,7 @@ class MainWindow(object):
 			self.success = True
 			self.fail = False
 			self.c += 1
-			
+
 
 	def quit(self):
 		choice = QtGui.QMessageBox.question(None, "Exit",
