@@ -1,4 +1,3 @@
-#cell 0
 import subprocess
 from os.path import join as pjoin
 import json
@@ -13,6 +12,15 @@ clingo_path = 'C:\\Users\\lenovo\\Documents\\MSc Computer Science\\ASP\\clingo.e
 clingo_options = ['--outf=2','-n 0', '--time-limit=10']
 clingo_command = [clingo_path] + clingo_options
 
+#Define rule paths
+
+all_rules = [['rules\\kick_placement.lp', 'rules\\kick_con_1.lp', 'rules\\kick_con_2.lp'], \
+             ['rules\\snare_placement_exp.lp', 'rules\\snare_placement_conv.lp'], \
+             ['rules\\kick_snare_con_1.lp'], \
+             ['rules\\hat_placement_exp.lp', 'rules\\hat_placement_conv.lp' , 'rules\\hat_con_1.lp', 'rules\\hat_con_2.lp'], \
+             ['rules\\perc_placement.lp', 'rules\\perc_con_1.lp', 'rules\\perc_con_2.lp'], \
+             ['rules\\gsnare_placement.lp', 'rules\\gsnare_con_1.lp', 'rules\\gsnare_con_2.lp']]
+
 #Solve the ruleset.
 def solve(program):
     input = program.encode()
@@ -24,14 +32,8 @@ def solve(program):
     else:
         return None
 
-#cell 1
+#Write the one bar problem rule set.
 def write_problem(constraints):
-    all_rules = [['rules\\kick_placement.lp', 'rules\\kick_con_1.lp', 'rules\\kick_con_2.lp'], \
-                 ['rules\\snare_placement_exp.lp', 'rules\\snare_placement_conv.lp'], \
-                 ['rules\\kick_snare_con_1.lp'], \
-                 ['rules\\hat_placement_exp.lp', 'rules\\hat_placement_conv.lp' , 'rules\\hat_con_1.lp', 'rules\\hat_con_2.lp'], \
-                 ['rules\\perc_placement.lp', 'rules\\perc_con_1.lp', 'rules\\perc_con_2.lp'], \
-                 ['rules\\gsnare_placement.lp', 'rules\\gsnare_con_1.lp', 'rules\\gsnare_con_2.lp']]
     rules = ['rules\\time.lp']
     i = 0
     for row in all_rules:
@@ -44,8 +46,7 @@ def write_problem(constraints):
             with open(fname) as infile:
                 outfile.write(infile.read())    
 
-#cell 2
-#Solve the problem in Clingo, specifying what kind of pattern will be generated.
+#Solve the one bar problem in Clingo, specifying what kind of pattern will be generated.
 #Print the number of solutions.
 def generate_solutions(constraints, user_input):
     write_problem(constraints)
@@ -56,19 +57,15 @@ def generate_solutions(constraints, user_input):
     solutions = solve(problem)
     #Print the number of patterns found.
     if solutions is not None:
-        print(str(len(solutions)) + " one bar patterns have been found.\n")
+        print(str(len(solutions)) + " 1 bar patterns have been found.\n")
     else:
         print("No patterns have been found.\n")
 
     return solutions
 
 
-#cell 3
 #Represent hit_list as a table.
-
-import numpy as np
 import matplotlib.pyplot as plt
-#import random
 from matplotlib.ticker import AutoMinorLocator
 from matplotlib.ticker import FixedLocator
 
@@ -125,7 +122,6 @@ def print_hits(pattern_index, hit_list, humanisation, pattern_length = 1):
     return canvas
 
 
-#cell 4
 #Create MIDI representation of the drum pattern.
 
 #offset needed to convert to MIDI time.
@@ -177,28 +173,107 @@ def write_midi(hit_list, savePath, file_name, humanisation):
     with open(filePath, "wb") as output_file:
         MyMIDI.writeFile(output_file)
 
-#cell 5
-def extend_pattern(pattern, extended_length):
-    two_bar_rules = ['rules\\time.lp', 'rules\\kick_snare_con_1.lp', 'rules\\hat_con_1.lp', 'rules\\hat_con_2.lp', 'rules\\perc_con_1.lp', 'rules\\perc_con_2.lp', 'rules\\gsnare_con_1.lp', 'rules\\gsnare_con_2.lp', 'rules\\extend_to_2_bars.lp']
-    with open('rules\\problem_2_bar.lp', 'w') as outfile:
-        for fname in two_bar_rules:
+#Extend the one bar pattern to a given length with given contraints.
+def extend_pattern(pattern, extended_length, constraints):
+    final_solution = pattern
+
+    #extendedConstraints removes the placement rule sets as they are not needed.
+    extendedConstraints = constraints[:]
+
+    extendedConstraints[0][0] = False
+    extendedConstraints[1][:] = False, False
+    extendedConstraints[3][0:1] = False, False
+    extendedConstraints[4][0] = False
+    extendedConstraints[5][0] = False
+
+    n_bar_rules = ['rules\\time.lp', 'rules\\extend_to_n_bars.lp']
+    i = 0
+    for row in all_rules:
+        for j in range(0, len(row)):
+            if extendedConstraints[i][j]:
+                n_bar_rules.append(all_rules[i][j])
+        i += 1
+
+    with open('rules\\problem_n_bar.lp', 'w') as outfile:
+        for fname in n_bar_rules:
             with open(fname) as infile:
                 outfile.write(infile.read())
-    
-    with open('rules\\problem_2_bar.lp', 'a') as outfile:
-        outfile.write('\n'.join([hit + '.' for hit in pattern]) + '\n')
-    
-    problem = open('rules\\problem_2_bar.lp', 'r').read()
-    solutions = solve(problem)
-    #Return if no valid solutions are found to allow another attempt.
-    if solutions == None:
-        return None
-    print(str(len(solutions)) + " two bar patterns have been found based on the randomly selected one bar pattern.\n")
-    rand_index = randint(0, len(solutions)-1)
-    rand_solution = solutions[rand_index][:]    
-    return rand_solution
 
-#cell 6
+    timeConstraints = []
+    limit = extended_length * 16
+
+    timeConstraints.append(":- chooseHit(k, T), T > " + str(limit) + ". ")
+    timeConstraints.append(":- chooseHit(s, T), T > " + str(limit) + ". ")
+    timeConstraints.append(":- chooseHit(h, T), T > " + str(limit) + ". ")
+    timeConstraints.append(":- chooseHit(p, T), T > " + str(limit) + ". ")
+    timeConstraints.append(":- chooseHit(g, T), T > " + str(limit) + ". ")
+
+    with open('rules\\problem_n_bar.lp', 'a') as outfile:
+        outfile.write('\n'.join(timeConstraints) + '\n')
+
+    for j in range(2, extended_length + 1):
+        
+        extendedTime = []
+        n = (j-2) * 16
+        minTime = 1 + n
+        maxTime = 16 + n
+        min1Q = 1 + n
+        max1Q = 3 + n
+        min2Q = 5 + n
+        max2Q = 7 + n
+        min3Q = 9 + n
+        max3Q = 11 + n
+        min4Q = 13 + n
+        max4Q = 15 + n
+        extendedTime.append("time(" + str(minTime) + ".." + str(maxTime) + "). ")
+        extendedTime.append("odd1Q(" + str(min1Q) + ";" + str(max1Q) + "). ")
+        extendedTime.append("odd2Q(" + str(min2Q) + ";" + str(max2Q) + "). ")
+        extendedTime.append("odd3Q(" + str(min3Q) + ";" + str(max3Q) + "). ")
+        extendedTime.append("odd4Q(" + str(min4Q) + ";" + str(max4Q) + "). ")
+        extendedTime.append("oddSH(" + str(max3Q) + ";" + str(min4Q) + ";" + str(max4Q) + "). ")
+
+        with open('rules\\problem_n_bar.lp', 'a') as outfile:
+            outfile.write('\n'.join(extendedTime) + '\n')    
+        
+        with open('rules\\problem_n_bar.lp', 'a') as outfile:
+            outfile.write('\n'.join([hit + '.' for hit in final_solution]) + '\n')
+
+        """
+        timeConstraints = []
+        limit = i * 16
+
+        timeConstraints.append(":- chooseHit(k, T), T > " + str(limit) + ". ")
+        timeConstraints.append(":- chooseHit(s, T), T > " + str(limit) + ". ")
+        timeConstraints.append(":- chooseHit(h, T), T > " + str(limit) + ". ")
+        timeConstraints.append(":- chooseHit(p, T), T > " + str(limit) + ". ")
+        timeConstraints.append(":- chooseHit(g, T), T > " + str(limit) + ". ")
+
+        with open('rules\\problem_n_bar.lp', 'a') as outfile:
+            outfile.write('\n'.join(timeConstraints) + '\n')
+
+        """
+
+        problem = open('rules\\problem_n_bar.lp', 'r').read()
+        solutions = solve(problem)
+
+        """
+        editProblem = open('rules\\problem_n_bar.lp', 'r')
+        lines = editProblem.readlines()
+        lines = lines[:-5]
+
+        editProblem = open('rules\\problem_n_bar.lp', 'w')
+        editProblem.writelines(lines)
+        editProblem.close()
+        """
+
+        #Return if no valid solutions are found to allow another attempt.
+        if solutions == None:
+            return None
+        print(str(len(solutions)) + " " + str(j) + " bar patterns have been found based on the randomly selected one bar pattern.\n")
+        rand_index = randint(0, len(solutions)-1)
+        final_solution = solutions[rand_index][:]   
+    return final_solution
+
 #Generate n random patterns from the answer set, depending on the rules chosen and any user input.
 #A level of humanisation is chosen between 0 and 0.05. 
 #Print and store solutions as MIDI files in the save path with a defined file name. Defaults to 1 pattern of length 1 bar with no user input.
@@ -211,14 +286,19 @@ def generate_patterns(constraints, savePath, fileName, n = 1, pattern_length = 1
         return 
     for i in range(1, n+1):
         rand_solution = None
-        #Iterate over the 1 bar patterns until a valid 2+ bar pattern is found.
+        #Iterate over the 1 bar patterns until a valid 2+ bar pattern is found (within 20 attempts).
         #This only applies when attempting to generate a 2+ bar pattern.
-        while(rand_solution == None):
+        j = 0
+        while(rand_solution == None and j < 20):
             rand_index = randint(0, len(solutions)-1)
             rand_solution = solutions[rand_index][:]
             #Allow for extension of the base pattern if pattern_length is not 1.
             if pattern_length != 1:
-                rand_solution = extend_pattern(rand_solution, pattern_length)
+                rand_solution = extend_pattern(rand_solution, pattern_length, constraints)
+            j += 1
+        #Return none if no solution can be found.
+        if rand_solution == None:
+            return patternPlot
         #Converting the random solution into a (hit, quarter-beat) list of type (char, char).
         hit_list = []
         for hit in rand_solution:
@@ -236,41 +316,3 @@ def generate_patterns(constraints, savePath, fileName, n = 1, pattern_length = 1
             write_midi(hit_list, savePath, fileName + "_" + str(i-1) + ".mid", humanisation)
 
     return patternPlot
-
-#cell 7
-
-"""
-import timeit
-
-start = timeit.default_timer()
-
-#constraints is a boolean list indicating which rules to include in the problem.
-#It is in the following format:
-# constraints = [[kick placement, kick mild constraints, kick moderate constraints], 
-#               [snare placement with mild constraints, snare placement with moderate constraints],
-#               [kick snare additional constraints],
-#               [hat placement w/ mild constraints, hat placement w/ moderate contraints, hat additional mild constraints, hat additional moderate constraints],
-#               [percussion placement, percussion mild constraints, percussion moderate constraints]
-#               [ghost snare placement, ghost snare mild constraints, ghost snare moderate constraints] ]
-
-constraints = [ [True, True, True], \
-                [False, True], \
-                [True], \
-                [False, True, True, True], \
-                [True, True, True], \
-                [True, True, True] ]
-
-#Patterns will be filled out around any user input given to the program.
-#user_input = ["chooseHit(k, 3).", "chooseHit(s, 5).", "chooseHit(s, 13)."]
-
-generate_patterns(constraints, 1, 2, 0.01)
-
-stop = timeit.default_timer()
-
-runtime = stop - start
-
-print("runtime: " + str(round(runtime, 3)) + " seconds") 
-
-#cell 8
-
-"""

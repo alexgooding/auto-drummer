@@ -291,12 +291,12 @@ class MainWindow(object):
 
 		self.humanisationDial.valueChanged.connect(self.humanisation_amount)
 
-		self.patternLengthBox = QtGui.QComboBox(self.formLayoutWidget_2)
+		self.patternLengthBox = QtGui.QSpinBox(self.formLayoutWidget_2)
 		self.patternLengthBox.setObjectName(_fromUtf8("patternLengthBox"))
-		self.patternLengthBox.addItem("1")
-		self.patternLengthBox.addItem("2")
+		self.patternLengthBox.setMinimum(1)
+		self.patternLengthBox.setMaximum(32)
 
-		self.patternLengthBox.activated[str].connect(self.pattern_length)
+		self.patternLengthBox.valueChanged.connect(self.pattern_length)
 
 		self.numberOfPatternsBox = QtGui.QSpinBox(self.formLayoutWidget_2)
 		self.numberOfPatternsBox.setObjectName(_fromUtf8("numberOfPatternsBox"))
@@ -478,6 +478,8 @@ class MainWindow(object):
 		self.formLayout_2.setWidget(4, QtGui.QFormLayout.FieldRole, self.playBtn)
 		self.playBtn.setVisible(False)
 
+		self.playShortcut = QtGui.QShortcut(QtGui.QKeySequence("Ctrl+P"), self.formLayoutWidget_2)
+		self.playShortcut.activated.connect(self.play_audio)
 		#self.formLayout_2.setWidget(5, QtGui.QFormLayout.FieldRole, self.boxLayout)	
 
 		#self.formLayout_3.setWidget(1, QtGui.QFormLayout.LabelRole, self.inputBoxLabel)
@@ -662,7 +664,7 @@ class MainWindow(object):
 		self.humanisationAmount = float(self.humanisationDial.value())/1000
 
 	def pattern_length(self, text):
-		self.patternLength = int(text)
+		self.patternLength = self.patternLengthBox.value()
 
 	def number_of_patterns(self):
 		self.numberOfPatterns = self.numberOfPatternsBox.value()
@@ -755,6 +757,9 @@ class MainWindow(object):
 		midiPath = self.savePath + "\\" + self.saveName + ".mid"
 		FluidSynth('Soundfont\\dnb_kit.sf2').play_midi(midiPath)
 
+	def null_method(self):
+		return
+
 	def generate(self):
 
 		self.constraint_assignment()
@@ -780,12 +785,6 @@ class MainWindow(object):
 
 		input = inputParameters + [userInput]
 
-		"""
-		print(input)
-		print("\n")
-		print(constraints)
-		print("\n")
-		"""
 		if self.success and self.fail == False and self.c != 0:
 			self.boxLayout.removeWidget(self.patternPlot)
 			self.patternPlot.deleteLater()
@@ -814,7 +813,7 @@ class MainWindow(object):
 				self.nullLabel = None				
 			self.boxLayout.addWidget(self.patternPlot)
 			self.success = True
-			self.fail = False
+			self.fail = False 
 			self.c += 1
 
 
