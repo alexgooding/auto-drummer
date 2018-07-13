@@ -40,13 +40,6 @@ chooseHit(g, T+16) :- chooseHit(g, T), time(T).
 %chooseHit(s, T+18) :- chooseHit(s, T), oddSH(T), m. 
 %chooseHit(g, T+19) :- chooseHit(g, T), oddSH(T), n.
 
-%Time constraints.
-%:- chooseHit(k, T), T > 32.
-%:- chooseHit(s, T), T > 32.
-%:- chooseHit(h, T), T > 32.
-%:- chooseHit(p, T), T > 32.
-%:- chooseHit(g, T), T > 32.
-
 %Snares cannot be placed 2 or 4 quarter-beats apart.
 :- chooseHit(s, T), chooseHit(s, T+2).
 :- chooseHit(s, T), chooseHit(s, T+4).
@@ -54,7 +47,4 @@ chooseHit(g, T+16) :- chooseHit(g, T), time(T).
 %Additional facts to shift hits and to break the measure up further.
 add(-2;0;2).
 
-%odd1Q(1;3).
-%odd2Q(5;7).
-%odd3Q(9;11).
-%odd4Q(13;15).
+#show chooseHit/2.

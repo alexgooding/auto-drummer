@@ -1,10 +1,16 @@
 import subprocess
 from os.path import join as pjoin
 import json
-from midiutil import MIDIFile
+from random import randint
+
 import numpy as np
+import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
+from matplotlib.ticker import AutoMinorLocator
+from matplotlib.ticker import FixedLocator
+
+from midiutil import MIDIFile
 
 #Configure Clingo parameters
 
@@ -22,7 +28,7 @@ all_rules = [['rules\\kick_placement.lp', 'rules\\kick_con_1.lp', 'rules\\kick_c
              ['rules\\gsnare_placement.lp', 'rules\\gsnare_con_1.lp', 'rules\\gsnare_con_2.lp']]
 
 #Solve the ruleset.
-def solve(program):
+def _solve(program):
     input = program.encode()
     process = subprocess.Popen(clingo_command, stdin=subprocess.PIPE, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
     output, error = process.communicate(input)
@@ -33,7 +39,7 @@ def solve(program):
         return None
 
 #Write the one bar problem rule set.
-def write_problem(constraints):
+def _write_problem(constraints):
     rules = ['rules\\time.lp']
     i = 0
     for row in all_rules:
@@ -41,20 +47,21 @@ def write_problem(constraints):
             if constraints[i][j]:
                 rules.append(all_rules[i][j])
         i += 1
-    with open('rules\\problem.lp', 'w') as outfile:
+    rules.append('rules\\time.lp')
+    with open('rules\\initial_problem.lp', 'w') as outfile:
         for fname in rules:
             with open(fname) as infile:
                 outfile.write(infile.read())    
 
 #Solve the one bar problem in Clingo, specifying what kind of pattern will be generated.
 #Print the number of solutions.
-def generate_solutions(constraints, user_input):
-    write_problem(constraints)
+def _generate_solutions(constraints, user_input):
+    _write_problem(constraints)
     if user_input:     
-        with open('rules\\problem.lp', 'a') as outfile:
+        with open('rules\\initial_problem.lp', 'a') as outfile:
             outfile.write('\n'.join(user_input) + '\n')
-    problem = open('rules\\problem.lp', 'r').read()
-    solutions = solve(problem)
+    problem = open('rules\\initial_problem.lp', 'r').read()
+    solutions = _solve(problem)
     #Print the number of patterns found.
     if solutions is not None:
         print(str(len(solutions)) + " 1 bar patterns have been found.\n")
@@ -65,12 +72,11 @@ def generate_solutions(constraints, user_input):
 
 
 #Represent hit_list as a table.
-import matplotlib.pyplot as plt
-from matplotlib.ticker import AutoMinorLocator
-from matplotlib.ticker import FixedLocator
 
-def print_hits(pattern_index, hit_list, humanisation, pattern_length = 1): 
+def _print_hits(pattern_index, hit_list, humanisation, pattern_length = 1): 
 
+    #X represents the data points to be plotted on the grid. 
+    #It also stores velocity data about each hit.
     X = np.zeros((5, 16 * pattern_length))
 
     #iterator
@@ -89,10 +95,11 @@ def print_hits(pattern_index, hit_list, humanisation, pattern_length = 1):
             X[0][int(i[1])-1] = 1./(volume-abs(humanisation[j])*300)
         j += 1
 
-    normalValue = np.amax(X) + 0.005
-    X[X == 0] = normalValue
+    #Normalise zero values for heat mapping purposes.
+    normal_value = np.amax(X) + 0.005
+    X[X == 0] = normal_value
 
-    #plt.style.use('ggplot')
+    #Plot figure.
     fig, ax = plt.subplots(figsize=(10, 10))
     ax.imshow(X, cmap=plt.get_cmap('gist_gray'))
 
@@ -109,9 +116,6 @@ def print_hits(pattern_index, hit_list, humanisation, pattern_length = 1):
     ax.grid(which='minor', color='0.4', linestyle='dashed')
     
     fig.patch.set_facecolor("None")
-    #ax.set_title("Pattern " + str(pattern_index), fontsize=18)
-
-    #plt.show()
 
     canvas = FigureCanvas(fig)
 
@@ -133,7 +137,7 @@ tempo    = 174  # In BPM
 volume   = 100  # 0-127, as per the MIDI standard
 
 #Write a MIDI file for a set of hits with a given file name.
-def write_midi(hit_list, savePath, file_name, humanisation):
+def _write_midi(hit_list, save_path, file_name, humanisation):
     MyMIDI = MIDIFile(1)  # One track, defaults to format 1 (tempo track is created
                           # automatically)
     MyMIDI.addTempo(track, 0, tempo)
@@ -169,104 +173,83 @@ def write_midi(hit_list, savePath, file_name, humanisation):
                 MyMIDI.addNote(track, channel, 63, float(i[1])/4-offset+humanisation[j], duration, int(volume-abs(humanisation[j])*300))
         j += 1
             
-    filePath = pjoin(savePath, file_name)
-    with open(filePath, "wb") as output_file:
-        MyMIDI.writeFile(output_file)
+    file_path = pjoin(save_path, file_name)
+    with open(file_path, "wb") as output_file:
+        MyMIDI.writeFile(output_file) 
 
 #Extend the one bar pattern to a given length with given contraints.
-def extend_pattern(pattern, extended_length, constraints):
+def _extend_pattern(pattern, extended_length, constraints):
     final_solution = pattern
 
-    #extendedConstraints removes the placement rule sets as they are not needed.
-    extendedConstraints = constraints[:]
+    #extended_constraints removes the placement rule sets as they are not needed.
+    extended_constraints = constraints[:]
 
-    extendedConstraints[0][0] = False
-    extendedConstraints[1][:] = False, False
-    extendedConstraints[3][0:1] = False, False
-    extendedConstraints[4][0] = False
-    extendedConstraints[5][0] = False
+    extended_constraints[0][0] = False
+    extended_constraints[1][:] = False, False
+    extended_constraints[3][0:1] = False, False
+    extended_constraints[4][0] = False
+    extended_constraints[5][0] = False
 
-    n_bar_rules = ['rules\\time.lp', 'rules\\extend_to_n_bars.lp']
+    #Create the list of rule sets to add to the n length problem.
+    n_bar_rules = ['rules\\extend_to_n_bars.lp']
     i = 0
     for row in all_rules:
         for j in range(0, len(row)):
-            if extendedConstraints[i][j]:
+            if extended_constraints[i][j]:
                 n_bar_rules.append(all_rules[i][j])
         i += 1
 
-    with open('rules\\problem_n_bar.lp', 'w') as outfile:
-        for fname in n_bar_rules:
-            with open(fname) as infile:
-                outfile.write(infile.read())
-
-    timeConstraints = []
-    limit = extended_length * 16
-
-    timeConstraints.append(":- chooseHit(k, T), T > " + str(limit) + ". ")
-    timeConstraints.append(":- chooseHit(s, T), T > " + str(limit) + ". ")
-    timeConstraints.append(":- chooseHit(h, T), T > " + str(limit) + ". ")
-    timeConstraints.append(":- chooseHit(p, T), T > " + str(limit) + ". ")
-    timeConstraints.append(":- chooseHit(g, T), T > " + str(limit) + ". ")
-
-    with open('rules\\problem_n_bar.lp', 'a') as outfile:
-        outfile.write('\n'.join(timeConstraints) + '\n')
-
     for j in range(2, extended_length + 1):
-        
-        extendedTime = []
-        n = (j-2) * 16
-        minTime = 1 + n
-        maxTime = 16 + n
-        min1Q = 1 + n
-        max1Q = 3 + n
-        min2Q = 5 + n
-        max2Q = 7 + n
-        min3Q = 9 + n
-        max3Q = 11 + n
-        min4Q = 13 + n
-        max4Q = 15 + n
-        extendedTime.append("time(" + str(minTime) + ".." + str(maxTime) + "). ")
-        extendedTime.append("odd1Q(" + str(min1Q) + ";" + str(max1Q) + "). ")
-        extendedTime.append("odd2Q(" + str(min2Q) + ";" + str(max2Q) + "). ")
-        extendedTime.append("odd3Q(" + str(min3Q) + ";" + str(max3Q) + "). ")
-        extendedTime.append("odd4Q(" + str(min4Q) + ";" + str(max4Q) + "). ")
-        extendedTime.append("oddSH(" + str(max3Q) + ";" + str(min4Q) + ";" + str(max4Q) + "). ")
 
-        with open('rules\\problem_n_bar.lp', 'a') as outfile:
-            outfile.write('\n'.join(extendedTime) + '\n')    
+        #Write a new problem rule set for the extended pattern.
+        with open('rules\\' + str(j) + '_bar_problem.lp', 'w') as outfile:
+            for fname in n_bar_rules:
+                with open(fname) as infile:
+                    outfile.write(infile.read())
+
+        #Add limit to keep chosen hits within pattern length for this iteration.
+        time_constraints = []
+        limit = j * 16
+
+        time_constraints.append(":- chooseHit(k, T), T > " + str(limit) + ". ")
+        time_constraints.append(":- chooseHit(s, T), T > " + str(limit) + ". ")
+        time_constraints.append(":- chooseHit(h, T), T > " + str(limit) + ". ")
+        time_constraints.append(":- chooseHit(p, T), T > " + str(limit) + ". ")
+        time_constraints.append(":- chooseHit(g, T), T > " + str(limit) + ". ")
+
+        with open('rules\\' + str(j) + '_bar_problem.lp', 'a') as outfile:
+            outfile.write('\n'.join(time_constraints) + '\n')
+
+        #Add the relevant time facts for this iteration.
+        extended_time = []
+        n = (j-2) * 16
+        min_time = 1 + n
+        max_time = 16 + n
+        max_1Q = 3 + n
+        min_2Q = 5 + n
+        max_2Q = 7 + n
+        min_3Q = 9 + n
+        max_3Q = 11 + n
+        min_4Q = 13 + n
+        max_4Q = 15 + n
+        extended_time.append("time(" + str(min_time) + ".." + str(max_time) + "). ")
+        extended_time.append("odd1Q(" + str(min_time) + ";" + str(max_1Q) + "). ")
+        extended_time.append("odd2Q(" + str(min_2Q) + ";" + str(max_2Q) + "). ")
+        extended_time.append("odd3Q(" + str(min_3Q) + ";" + str(max_3Q) + "). ")
+        extended_time.append("odd4Q(" + str(min_4Q) + ";" + str(max_4Q) + "). ")
+        extended_time.append("oddSH(" + str(max_3Q) + ";" + str(min_4Q) + ";" + str(max_4Q) + "). ")
+
+        with open('rules\\' + str(j) + '_bar_problem.lp', 'a') as outfile:
+            outfile.write('\n'.join(extended_time) + '\n')    
         
-        with open('rules\\problem_n_bar.lp', 'a') as outfile:
+        #Add the chosen hits from the previous bar.
+        with open('rules\\' + str(j) + '_bar_problem.lp', 'a') as outfile:
             outfile.write('\n'.join([hit + '.' for hit in final_solution]) + '\n')
 
-        """
-        timeConstraints = []
-        limit = i * 16
+        problem = open('rules\\' + str(j) + '_bar_problem.lp', 'r').read()
+        solutions = _solve(problem)
 
-        timeConstraints.append(":- chooseHit(k, T), T > " + str(limit) + ". ")
-        timeConstraints.append(":- chooseHit(s, T), T > " + str(limit) + ". ")
-        timeConstraints.append(":- chooseHit(h, T), T > " + str(limit) + ". ")
-        timeConstraints.append(":- chooseHit(p, T), T > " + str(limit) + ". ")
-        timeConstraints.append(":- chooseHit(g, T), T > " + str(limit) + ". ")
-
-        with open('rules\\problem_n_bar.lp', 'a') as outfile:
-            outfile.write('\n'.join(timeConstraints) + '\n')
-
-        """
-
-        problem = open('rules\\problem_n_bar.lp', 'r').read()
-        solutions = solve(problem)
-
-        """
-        editProblem = open('rules\\problem_n_bar.lp', 'r')
-        lines = editProblem.readlines()
-        lines = lines[:-5]
-
-        editProblem = open('rules\\problem_n_bar.lp', 'w')
-        editProblem.writelines(lines)
-        editProblem.close()
-        """
-
-        #Return if no valid solutions are found to allow another attempt.
+        #Return None if no valid solutions are found to allow another attempt.
         if solutions == None:
             return None
         print(str(len(solutions)) + " " + str(j) + " bar patterns have been found based on the randomly selected one bar pattern.\n")
@@ -274,31 +257,34 @@ def extend_pattern(pattern, extended_length, constraints):
         final_solution = solutions[rand_index][:]   
     return final_solution
 
+#Iterate over the 1 bar patterns until a valid 2+ bar pattern is found (within the search limit).
+#This only applies when attempting to generate a 2+ bar pattern. Otherwise a random 1 bar pattern is chosen.
+def _search_solutions(solutions, constraints, pattern_length, search_limit):
+    rand_solution = None
+    i = 0
+    while(rand_solution == None and i < search_limit):
+        rand_index = randint(0, len(solutions)-1)
+        rand_solution = solutions[rand_index][:]
+        #Allow for extension of the base pattern if pattern_length is not 1.
+        if pattern_length != 1:
+            rand_solution = _extend_pattern(rand_solution, pattern_length, constraints)
+        i += 1 
+
+    return rand_solution, rand_index   
+
 #Generate n random patterns from the answer set, depending on the rules chosen and any user input.
 #A level of humanisation is chosen between 0 and 0.05. 
 #Print and store solutions as MIDI files in the save path with a defined file name. Defaults to 1 pattern of length 1 bar with no user input.
-from random import randint
-
-def generate_patterns(constraints, savePath, fileName, n = 1, pattern_length = 1, humanisation_intensity = 0, user_input = None):
-    solutions = generate_solutions(constraints, user_input)
-    patternPlot = None
+def generate_patterns(constraints, save_path, file_name, n = 1, pattern_length = 1, humanisation_intensity = 0, user_input = None):
+    solutions = _generate_solutions(constraints, user_input)
+    pattern_plot = None
     if solutions is None:
-        return 
+        return None
     for i in range(1, n+1):
-        rand_solution = None
-        #Iterate over the 1 bar patterns until a valid 2+ bar pattern is found (within 20 attempts).
-        #This only applies when attempting to generate a 2+ bar pattern.
-        j = 0
-        while(rand_solution == None and j < 20):
-            rand_index = randint(0, len(solutions)-1)
-            rand_solution = solutions[rand_index][:]
-            #Allow for extension of the base pattern if pattern_length is not 1.
-            if pattern_length != 1:
-                rand_solution = extend_pattern(rand_solution, pattern_length, constraints)
-            j += 1
+        rand_solution, rand_index = _search_solutions(solutions, constraints, pattern_length, 20)
         #Return none if no solution can be found.
         if rand_solution == None:
-            return patternPlot
+            return None
         #Converting the random solution into a (hit, quarter-beat) list of type (char, char).
         hit_list = []
         for hit in rand_solution:
@@ -308,11 +294,11 @@ def generate_patterns(constraints, savePath, fileName, n = 1, pattern_length = 1
         #The further away from 0 the hit is nudged, the quieter it is hit.
         humanisation = np.random.normal(0, humanisation_intensity, len(hit_list))
 
-        patternPlot = print_hits(rand_index, hit_list, humanisation, pattern_length)
+        pattern_plot = _print_hits(rand_index, hit_list, humanisation, pattern_length)
         print("\n")
         if i == 1:
-            write_midi(hit_list, savePath, fileName + ".mid", humanisation)
+            _write_midi(hit_list, save_path, file_name + ".mid", humanisation)
         else:
-            write_midi(hit_list, savePath, fileName + "_" + str(i-1) + ".mid", humanisation)
+            _write_midi(hit_list, save_path, file_name + "_" + str(i-1) + ".mid", humanisation)
 
-    return patternPlot
+    return pattern_plot

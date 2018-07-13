@@ -124,13 +124,6 @@ class MainWindow(object):
 		self.formLayout_2 = QtGui.QFormLayout(self.formLayoutWidget_2)
 		self.formLayout_2.setObjectName(_fromUtf8("formLayout_2"))  
 
-		"""
-		self.formLayoutWidget_3 = QtGui.QWidget(self.inputTab)
-		self.formLayoutWidget_3.setGeometry(QtCore.QRect(200, -1, 400, 700))
-		self.formLayoutWidget_3.setObjectName(_fromUtf8("formLayoutWidget_3"))
-		self.formLayout_3 = QtGui.QFormLayout(self.formLayoutWidget_3)
-		self.formLayout_3.setObjectName(_fromUtf8("formLayout_3")) 		     
-		"""
 		#Check boxes, sliders, dials, buttons and text boxes
 		self.kickBox1 = QtGui.QCheckBox(self.formLayoutWidget)
 		self.kickBox1.setObjectName(_fromUtf8("kickBox1"))
@@ -480,10 +473,6 @@ class MainWindow(object):
 
 		self.playShortcut = QtGui.QShortcut(QtGui.QKeySequence("Ctrl+P"), self.formLayoutWidget_2)
 		self.playShortcut.activated.connect(self.play_audio)
-		#self.formLayout_2.setWidget(5, QtGui.QFormLayout.FieldRole, self.boxLayout)	
-
-		#self.formLayout_3.setWidget(1, QtGui.QFormLayout.LabelRole, self.inputBoxLabel)
-		#self.formLayout_3.setWidget(1, QtGui.QFormLayout.FieldRole, self.inputBox)	
 
 		#Main menu options
 
@@ -548,7 +537,6 @@ class MainWindow(object):
 		self.patternLengthLabel.setText(_translate("Window", "Pattern Length", None))
 		self.numberOfPatternsLabel.setText(_translate("Window", "Number of Patterns", None))
 		self.saveNameBoxLabel.setText(_translate("Window", "File Save Name", None))
-		#self.inputBoxLabel.setText(_translate("Window", "User Input", None))
 		self.menuFile.setTitle(_translate("Window", "File", None))
 		self.actionExit.setText(_translate("Window", "Exit", None))
 		self.actionExit.setShortcut(_translate("Window", "Ctrl+Q", None))
