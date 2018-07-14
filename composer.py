@@ -201,21 +201,56 @@ def _extend_pattern(pattern, extended_length, constraints):
 
     for j in range(2, extended_length + 1):
 
-        #Write a new problem rule set for the extended pattern.
-        with open('rules\\' + str(j) + '_bar_problem.lp', 'w') as outfile:
-            for fname in n_bar_rules:
-                with open(fname) as infile:
-                    outfile.write(infile.read())
+        #Determine whether a fill should be placed within the even bar.
+        # 0 is no fill, 1 is a short fill (1 beat) and 2 a long fill (2 beats).
+        fill_type = 0
+        if j % 2 == 0:
+            fill_type = randint(0, 1)
+        if j % 4 == 0:
+            fill_type = randint(0, 2)
 
         #Add limit to keep chosen hits within pattern length for this iteration.
         time_constraints = []
         limit = j * 16
 
-        time_constraints.append(":- chooseHit(k, T), T > " + str(limit) + ". ")
-        time_constraints.append(":- chooseHit(s, T), T > " + str(limit) + ". ")
-        time_constraints.append(":- chooseHit(h, T), T > " + str(limit) + ". ")
-        time_constraints.append(":- chooseHit(p, T), T > " + str(limit) + ". ")
-        time_constraints.append(":- chooseHit(g, T), T > " + str(limit) + ". ")
+        if fill_type == 1:
+            fill_limit = limit - 4
+            time_constraints.append(":- chooseHit(k, T), T > " + str(limit) + ". ")
+            time_constraints.append(":- chooseHit(s, T), T > " + str(limit) + ". ")
+            time_constraints.append(":- chooseHit(h, T), T > " + str(limit) + ". ")
+            time_constraints.append(":- chooseHit(p, T), T > " + str(limit) + ". ")
+            time_constraints.append(":- chooseHit(g, T), T > " + str(limit) + ". ")
+            time_constraints.append(":- fillHit(k, T), T <= " + str(fill_limit) + ". ")
+            time_constraints.append(":- fillHit(s, T), T <= " + str(fill_limit) + ". ")
+            #time_constraints.append(":- fillHit(h, T), T < " + str(limit) + ". ")
+            #time_constraints.append(":- fillHit(p, T), T < " + str(limit) + ". ")
+            #time_constraints.append(":- fillHit(g, T), T < " + str(limit) + ". ")
+            n_bar_rules.append('rules\\short_fill.lp')
+        elif fill_type == 2:
+            fill_limit = limit - 8
+            time_constraints.append(":- chooseHit(k, T), T > " + str(limit) + ". ")
+            time_constraints.append(":- chooseHit(s, T), T > " + str(limit) + ". ")
+            time_constraints.append(":- chooseHit(h, T), T > " + str(limit) + ". ")
+            time_constraints.append(":- chooseHit(p, T), T > " + str(limit) + ". ")
+            time_constraints.append(":- chooseHit(g, T), T > " + str(limit) + ". ") 
+            time_constraints.append(":- fillHit(k, T), T <= " + str(fill_limit) + ". ")
+            time_constraints.append(":- fillHit(s, T), T <= " + str(fill_limit) + ". ")
+            #time_constraints.append(":- fillHit(h, T), T < " + str(limit) + ". ")
+            #time_constraints.append(":- fillHit(p, T), T < " + str(limit) + ". ")
+            #time_constraints.append(":- fillHit(g, T), T < " + str(limit) + ". ")
+            n_bar_rules.append('rules\\long_fill.lp')       
+        else:
+            time_constraints.append(":- chooseHit(k, T), T > " + str(limit) + ". ")
+            time_constraints.append(":- chooseHit(s, T), T > " + str(limit) + ". ")
+            time_constraints.append(":- chooseHit(h, T), T > " + str(limit) + ". ")
+            time_constraints.append(":- chooseHit(p, T), T > " + str(limit) + ". ")
+            time_constraints.append(":- chooseHit(g, T), T > " + str(limit) + ". ")
+
+        #Write a new problem rule set for the extended pattern.
+        with open('rules\\' + str(j) + '_bar_problem.lp', 'w') as outfile:
+            for fname in n_bar_rules:
+                with open(fname) as infile:
+                    outfile.write(infile.read())
 
         with open('rules\\' + str(j) + '_bar_problem.lp', 'a') as outfile:
             outfile.write('\n'.join(time_constraints) + '\n')
@@ -248,6 +283,8 @@ def _extend_pattern(pattern, extended_length, constraints):
 
         problem = open('rules\\' + str(j) + '_bar_problem.lp', 'r').read()
         solutions = _solve(problem)
+
+        #print(solutions)
 
         #Return None if no valid solutions are found to allow another attempt.
         if solutions == None:
