@@ -48,3 +48,4 @@ chooseHit(g, T+16) :- chooseHit(g, T), time(T).
 add(-2;0;2).
 
 #show chooseHit/2.
+#show fillHit/2.

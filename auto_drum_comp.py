@@ -49,6 +49,8 @@ class MainWindow(object):
 	gSnareCon1 = True
 	gSnareCon2 = True
 
+	fills = False
+
 	snareConvValue = 0
 	hatConvValue = 0
 
@@ -297,6 +299,10 @@ class MainWindow(object):
 
 		self.numberOfPatternsBox.valueChanged.connect(self.number_of_patterns)
 
+		self.fillsBox = QtGui.QCheckBox(self.formLayoutWidget_2)
+		self.fillsBox.setObjectName(_fromUtf8("fillsBox"))
+		self.fillsBox.stateChanged.connect(self.fills_enabled)
+
 		self.saveNameBox = QtGui.QLineEdit(self.formLayoutWidget_2)
 		self.saveNameBox.setObjectName(_fromUtf8("saveNameBox"))	
 		self.saveNameBox.setText("drum_pattern")
@@ -403,11 +409,11 @@ class MainWindow(object):
 		self.numberOfPatternsLabel = QtGui.QLabel(self.formLayoutWidget_2)
 		self.numberOfPatternsLabel.setObjectName(_fromUtf8("numberOfPatternsLabel"))
 
-		self.saveNameBoxLabel = QtGui.QLabel(self.formLayoutWidget_2)
-		self.saveNameBoxLabel.setObjectName(_fromUtf8("saveNameBoxLabel"))
+		self.fillsLabel = QtGui.QLabel(self.formLayoutWidget_2)
+		self.fillsLabel.setObjectName(_fromUtf8("fillsLabel"))		
 
-		#self.inputBoxLabel = QtGui.QLabel(self.formLayoutWidget_3)
-		#self.inputBoxLabel.setObjectName(_fromUtf8("inputBoxLabel"))							
+		self.saveNameBoxLabel = QtGui.QLabel(self.formLayoutWidget_2)
+		self.saveNameBoxLabel.setObjectName(_fromUtf8("saveNameBoxLabel"))							
 		
 		#Add objects to formLayout	
 		self.formLayout.setWidget(0, QtGui.QFormLayout.LabelRole, self.kickLabel1)
@@ -464,11 +470,14 @@ class MainWindow(object):
 		self.formLayout_2.setWidget(2, QtGui.QFormLayout.LabelRole, self.numberOfPatternsLabel)
 		self.formLayout_2.setWidget(2, QtGui.QFormLayout.FieldRole, self.numberOfPatternsBox)
 
-		self.formLayout_2.setWidget(3, QtGui.QFormLayout.LabelRole, self.saveNameBoxLabel)
-		self.formLayout_2.setWidget(3, QtGui.QFormLayout.FieldRole, self.saveNameBox)		
+		self.formLayout_2.setWidget(3, QtGui.QFormLayout.LabelRole, self.fillsLabel)
+		self.formLayout_2.setWidget(3, QtGui.QFormLayout.FieldRole, self.fillsBox)
 
-		self.formLayout_2.setWidget(4, QtGui.QFormLayout.LabelRole, self.genBtn)
-		self.formLayout_2.setWidget(4, QtGui.QFormLayout.FieldRole, self.playBtn)
+		self.formLayout_2.setWidget(4, QtGui.QFormLayout.LabelRole, self.saveNameBoxLabel)
+		self.formLayout_2.setWidget(4, QtGui.QFormLayout.FieldRole, self.saveNameBox)		
+
+		self.formLayout_2.setWidget(5, QtGui.QFormLayout.LabelRole, self.genBtn)
+		self.formLayout_2.setWidget(5, QtGui.QFormLayout.FieldRole, self.playBtn)
 		self.playBtn.setVisible(False)
 
 		self.playShortcut = QtGui.QShortcut(QtGui.QKeySequence("Ctrl+P"), self.formLayoutWidget_2)
@@ -536,6 +545,7 @@ class MainWindow(object):
 		self.humanisationLabel.setText(_translate("Window", "Humanisation Amount", None))
 		self.patternLengthLabel.setText(_translate("Window", "Pattern Length", None))
 		self.numberOfPatternsLabel.setText(_translate("Window", "Number of Patterns", None))
+		self.fillsLabel.setText(_translate("Window", "Enable Fills", None))
 		self.saveNameBoxLabel.setText(_translate("Window", "File Save Name", None))
 		self.menuFile.setTitle(_translate("Window", "File", None))
 		self.actionExit.setText(_translate("Window", "Exit", None))
@@ -546,6 +556,12 @@ class MainWindow(object):
 		self.tabLayout.setTabText(self.tabLayout.indexOf(self.inputTab), _translate("Window", "Pattern Input", None))
 
 	#Constraint variable assignment methods	
+	def fills_enabled(self, state):
+		if state == QtCore.Qt.Checked:
+			self.fills = True
+		else:
+			self.fills = False
+
 	def kick_placement(self, state):
 		if state == QtCore.Qt.Checked:
 			self.kickPlacement = True
@@ -780,7 +796,7 @@ class MainWindow(object):
 
 			self.playBtn.setVisible(False)
 
-		self.patternPlot = cp.generate_patterns(constraints, self.savePath, self.saveName, self.numberOfPatterns, self.patternLength, self.humanisationAmount, input)
+		self.patternPlot = cp.generate_patterns(constraints, self.fills, self.savePath, self.saveName, self.numberOfPatterns, self.patternLength, self.humanisationAmount, input)
 
 		#Allow user to see the play button
 		self.playBtn.setVisible(True)
