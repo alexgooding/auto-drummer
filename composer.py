@@ -27,10 +27,11 @@ all_rules = [['rules\\kick_placement.lp', 'rules\\kick_con_1.lp', 'rules\\kick_c
              ['rules\\perc_placement.lp', 'rules\\perc_con_1.lp', 'rules\\perc_con_2.lp'], \
              ['rules\\gsnare_placement.lp', 'rules\\gsnare_con_1.lp', 'rules\\gsnare_con_2.lp']]
 
-#Solve the ruleset.
+#Solve the ruleset by accessing the Clingo solver through the command line.
 def _solve(program):
     input = program.encode()
-
+    #Stop the console window from showing during execution.
+    #This is used when distributing as a .exe
     startupinfo = subprocess.STARTUPINFO()
     startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
 
@@ -134,17 +135,15 @@ def _print_hits(pattern_index, hit_list, humanisation, pattern_length = 1):
 
 #offset needed to convert to MIDI time.
 offset = 0.25
-track    = 0
-channel  = 0
 duration = 0.125 # In beats
 tempo    = 174  # In BPM
 volume   = 100  # 0-127, as per the MIDI standard
 
 #Write a MIDI file for a set of hits with a given file name.
 def _write_midi(hit_list, fill_list, save_path, file_name, humanisation):
-    MyMIDI = MIDIFile(1)  # One track, defaults to format 1 (tempo track is created
+    midi_patttern = MIDIFile(1)  # One track, defaults to format 1 (tempo track is created
                           # automatically)
-    MyMIDI.addTempo(track, 0, tempo)
+    midi_patttern.addTempo(0, 0, tempo)
 
     #iterator
     j = 0
@@ -152,42 +151,42 @@ def _write_midi(hit_list, fill_list, save_path, file_name, humanisation):
     for i in hit_list:
         if i[0] == 'k':
             if i[1] == '1':
-                MyMIDI.addNote(track, channel, 60, float(i[1])/4-offset, duration, int(volume-abs(humanisation[j])*300))
+                midi_patttern.addNote(0, 0, 60, float(i[1])/4-offset, duration, int(volume-abs(humanisation[j])*300))
             else:
-                MyMIDI.addNote(track, channel, 60, float(i[1])/4-offset+humanisation[j], duration, int(volume-abs(humanisation[j])*300))
+                midi_patttern.addNote(0, 0, 60, float(i[1])/4-offset+humanisation[j], duration, int(volume-abs(humanisation[j])*300))
         if i[0] == 's':
             if i[1] == '1':
-                MyMIDI.addNote(track, channel, 61, float(i[1])/4-offset, duration, int(volume-abs(humanisation[j])*300))
+                midi_patttern.addNote(0, 0, 61, float(i[1])/4-offset, duration, int(volume-abs(humanisation[j])*300))
             else:
-                MyMIDI.addNote(track, channel, 61, float(i[1])/4-offset+humanisation[j], duration, int(volume-abs(humanisation[j])*300))
+                midi_patttern.addNote(0, 0, 61, float(i[1])/4-offset+humanisation[j], duration, int(volume-abs(humanisation[j])*300))
         if i[0] == 'g':
             if i[1] == '1':
-                MyMIDI.addNote(track, channel, 61, float(i[1])/4-offset, duration, int(40-abs(humanisation[j])*300))
+                midi_patttern.addNote(0, 0, 61, float(i[1])/4-offset, duration, int(40-abs(humanisation[j])*300))
             else:
-                MyMIDI.addNote(track, channel, 61, float(i[1])/4-offset+humanisation[j], duration, int(40-abs(humanisation[j])*300))
+                midi_patttern.addNote(0, 0, 61, float(i[1])/4-offset+humanisation[j], duration, int(40-abs(humanisation[j])*300))
         if i[0] == 'h':
             if i[1] == '1':
-                MyMIDI.addNote(track, channel, 62, float(i[1])/4-offset, duration, int(volume-abs(humanisation[j])*300))
+                midi_patttern.addNote(0, 0, 62, float(i[1])/4-offset, duration, int(volume-abs(humanisation[j])*300))
             else:
-                MyMIDI.addNote(track, channel, 62, float(i[1])/4-offset+humanisation[j], duration, int(volume-abs(humanisation[j])*300))
+                midi_patttern.addNote(0, 0, 62, float(i[1])/4-offset+humanisation[j], duration, int(volume-abs(humanisation[j])*300))
         if i[0] == 'p':
             if i[1] == '1':
-                MyMIDI.addNote(track, channel, 63, float(i[1])/4-offset, duration, int(volume-abs(humanisation[j])*300))
+                midi_patttern.addNote(0, 0, 63, float(i[1])/4-offset, duration, int(volume-abs(humanisation[j])*300))
             else:
-                MyMIDI.addNote(track, channel, 63, float(i[1])/4-offset+humanisation[j], duration, int(volume-abs(humanisation[j])*300))
+                midi_patttern.addNote(0, 0, 63, float(i[1])/4-offset+humanisation[j], duration, int(volume-abs(humanisation[j])*300))
         j += 1
 
     for i in fill_list:
         if i[0] == 'k':
-            MyMIDI.addNote(track, channel, 60, float(i[1])/4-offset+humanisation[j], duration, int(volume-25-abs(humanisation[j])*300))
+            midi_patttern.addNote(0, 0, 60, float(i[1])/4-offset+humanisation[j], duration, int(volume-15-abs(humanisation[j])*500))
         if i[0] == 's':
-            MyMIDI.addNote(track, channel, 61, float(i[1])/4-offset+humanisation[j], duration, int(volume-15-abs(humanisation[j])*300))
+            midi_patttern.addNote(0, 0, 61, float(i[1])/4-offset+humanisation[j], duration, int(volume-10-abs(humanisation[j])*500))
         if i[0] == 'h':
-            MyMIDI.addNote(track, channel, 62, float(i[1])/4-offset+humanisation[j], duration, int(volume-20-abs(humanisation[j])*300))
+            midi_patttern.addNote(0, 0, 62, float(i[1])/4-offset+humanisation[j], duration, int(volume-12-abs(humanisation[j])*500))
             
     file_path = pjoin(save_path, file_name)
     with open(file_path, "wb") as output_file:
-        MyMIDI.writeFile(output_file) 
+        midi_patttern.writeFile(output_file) 
 
 #Extend the one bar pattern to a given length with given contraints.
 def _extend_pattern(pattern, extended_length, constraints, fills):
@@ -219,7 +218,7 @@ def _extend_pattern(pattern, extended_length, constraints, fills):
         n_bar_rules = n_bar_rules_base[:]
 
         #Determine whether a fill should be placed within the even bar.
-        # 0 is no fill, 1 is a short fill (1 beat) and 2 a long fill (2 beats).
+        #0 is no fill, 1 is a short fill (1 beat) and 2 a long fill (2 beats).
         fill_type = 0
         if fills:
             if j % 2 == 0:
@@ -227,50 +226,19 @@ def _extend_pattern(pattern, extended_length, constraints, fills):
             if j % 4 == 0:
                 fill_type = randint(0, 2)
 
+        #Add the start and end point of any fills present in terms of quarter-beats.
         fill_locations.append(j*16-fill_type*4)
         fill_locations.append(j*16)
 
-        #Add limit to keep chosen hits within pattern length for this iteration.
-        time_constraints = []
-        limit = j * 16
-        fill_limit = limit
+        #Add the relevant fill rule set to the problem rules.
+        if fill_type != 0:
+            n_bar_rules.append('rules\\fill_' + str(fill_type) + '.lp')
 
-        if fill_type == 1:
-            fill_limit = limit - 4
-            minimum = limit - 16
-            time_constraints.append(":- chooseHit(k, T), T > " + str(limit) + ". ")
-            time_constraints.append(":- chooseHit(s, T), T > " + str(limit) + ". ")
-            time_constraints.append(":- chooseHit(h, T), T > " + str(limit) + ". ")
-            time_constraints.append(":- chooseHit(p, T), T > " + str(limit) + ". ")
-            time_constraints.append(":- chooseHit(g, T), T > " + str(limit) + ". ")
-            time_constraints.append(":- fillHit(k, T), T <= " + str(fill_limit) + ", T > " + str(minimum) + ". ")
-            time_constraints.append(":- fillHit(s, T), T <= " + str(fill_limit) + ", T > " + str(minimum) + ". ")
-            time_constraints.append(":- fillHit(h, T), T <= " + str(fill_limit) + ", T > " + str(minimum) + ". ")
-            #time_constraints.append(":- fillHit(h, T), T < " + str(limit) + ". ")
-            #time_constraints.append(":- fillHit(p, T), T < " + str(limit) + ". ")
-            #time_constraints.append(":- fillHit(g, T), T < " + str(limit) + ". ")
-            n_bar_rules.append('rules\\short_fill.lp')
-        elif fill_type == 2:
-            fill_limit = limit - 8
-            minimum = limit - 16
-            time_constraints.append(":- chooseHit(k, T), T > " + str(limit) + ". ")
-            time_constraints.append(":- chooseHit(s, T), T > " + str(limit) + ". ")
-            time_constraints.append(":- chooseHit(h, T), T > " + str(limit) + ". ")
-            time_constraints.append(":- chooseHit(p, T), T > " + str(limit) + ". ")
-            time_constraints.append(":- chooseHit(g, T), T > " + str(limit) + ". ") 
-            time_constraints.append(":- fillHit(k, T), T <= " + str(fill_limit) + ", T > " + str(minimum) + ". ")
-            time_constraints.append(":- fillHit(s, T), T <= " + str(fill_limit) + ", T > " + str(minimum) + ". ")
-            time_constraints.append(":- fillHit(h, T), T <= " + str(fill_limit) + ", T > " + str(minimum) + ". ")
-            #time_constraints.append(":- fillHit(h, T), T < " + str(limit) + ". ")
-            #time_constraints.append(":- fillHit(p, T), T < " + str(limit) + ". ")
-            #time_constraints.append(":- fillHit(g, T), T < " + str(limit) + ". ")
-            n_bar_rules.append('rules\\long_fill.lp')       
-        else:
-            time_constraints.append(":- chooseHit(k, T), T > " + str(limit) + ". ")
-            time_constraints.append(":- chooseHit(s, T), T > " + str(limit) + ". ")
-            time_constraints.append(":- chooseHit(h, T), T > " + str(limit) + ". ")
-            time_constraints.append(":- chooseHit(p, T), T > " + str(limit) + ". ")
-            time_constraints.append(":- chooseHit(g, T), T > " + str(limit) + ". ")
+        #Generate the relevant time facts for this iteration.
+        extended_time = _extend_time((j-2) * 16)
+
+        #Add limit to keep chosen hits within pattern length for this iteration.
+        extended_time_constraints = _extend_time_constraints(fill_type, j * 16)
 
         #Write a new problem rule set for the extended pattern.
         with open('rules\\' + str(j) + '_bar_problem.lp', 'w') as outfile:
@@ -279,34 +247,11 @@ def _extend_pattern(pattern, extended_length, constraints, fills):
                     outfile.write(infile.read())
 
         with open('rules\\' + str(j) + '_bar_problem.lp', 'a') as outfile:
-            outfile.write('\n'.join(time_constraints) + '\n')
-
-        #Add the relevant time facts for this iteration.
-        extended_time = []
-        n = (j-2) * 16
-        min_time = 1 + n
-        max_time = 16 + n
-        max_1Q = 3 + n
-        min_2Q = 5 + n
-        max_2Q = 7 + n
-        min_3Q = 9 + n
-        max_3Q = 11 + n
-        min_4Q = 13 + n
-        max_4Q = 15 + n
-        extended_time.append("time(" + str(min_time) + ".." + str(max_time) + "). ")
-        extended_time.append("odd1Q(" + str(min_time) + ";" + str(max_1Q) + "). ")
-        extended_time.append("odd2Q(" + str(min_2Q) + ";" + str(max_2Q) + "). ")
-        extended_time.append("odd3Q(" + str(min_3Q) + ";" + str(max_3Q) + "). ")
-        extended_time.append("odd4Q(" + str(min_4Q) + ";" + str(max_4Q) + "). ")
-        extended_time.append("oddSH(" + str(max_3Q) + ";" + str(min_4Q) + ";" + str(max_4Q) + "). ")
-
-        with open('rules\\' + str(j) + '_bar_problem.lp', 'a') as outfile:
-            outfile.write('\n'.join(extended_time) + '\n')    
-        
-        #Add the chosen hits from the previous bar.
-        with open('rules\\' + str(j) + '_bar_problem.lp', 'a') as outfile:
+            outfile.write('\n'.join(extended_time) + '\n')
+            outfile.write('\n'.join(extended_time_constraints) + '\n')
+            #Add the chosen hits from the previous bar.  
             outfile.write('\n'.join([hit + '.' for hit in final_solution]) + '\n')
-
+            
         problem = open('rules\\' + str(j) + '_bar_problem.lp', 'r').read()
         solutions = _solve(problem)
 
@@ -317,6 +262,51 @@ def _extend_pattern(pattern, extended_length, constraints, fills):
         rand_index = randint(0, len(solutions)-1)
         final_solution = solutions[rand_index][:] 
     return final_solution, fill_locations
+
+#Construct a list with new time facts relevant to the extended problem.
+#n represents the number of quarter-beats we are extending the two bar pattern by.
+def _extend_time(n):
+    extended_time = []
+    min_time = 1 + n
+    max_time = 16 + n
+    max_1Q = 3 + n
+    min_2Q = 5 + n
+    max_2Q = 7 + n
+    min_3Q = 9 + n
+    max_3Q = 11 + n
+    min_4Q = 13 + n
+    max_4Q = 15 + n
+    extended_time.append("time(" + str(min_time) + ".." + str(max_time) + "). ")
+    extended_time.append("odd1Q(" + str(min_time) + ";" + str(max_1Q) + "). ")
+    extended_time.append("odd2Q(" + str(min_2Q) + ";" + str(max_2Q) + "). ")
+    extended_time.append("odd3Q(" + str(min_3Q) + ";" + str(max_3Q) + "). ")
+    extended_time.append("odd4Q(" + str(min_4Q) + ";" + str(max_4Q) + "). ")
+    extended_time.append("oddSH(" + str(min_3Q) + ";" + str(max_3Q) + ";" + str(min_4Q) + ";" + str(max_4Q) + "). ")
+
+    return extended_time
+
+#Construct a list of time constraints for ordinary hits and fill hits.
+def _extend_time_constraints(fill_type, limit):
+    extended_time_constraints = []
+    if fill_type == 0:
+        extended_time_constraints.append(":- chooseHit(k, T), T > " + str(limit) + ". ")
+        extended_time_constraints.append(":- chooseHit(s, T), T > " + str(limit) + ". ")
+        extended_time_constraints.append(":- chooseHit(h, T), T > " + str(limit) + ". ")
+        extended_time_constraints.append(":- chooseHit(p, T), T > " + str(limit) + ". ")
+        extended_time_constraints.append(":- chooseHit(g, T), T > " + str(limit) + ". ")
+    else:
+        fill_limit = limit - 4*fill_type
+        minimum = limit - 16
+        extended_time_constraints.append(":- chooseHit(k, T), T > " + str(limit) + ". ")
+        extended_time_constraints.append(":- chooseHit(s, T), T > " + str(limit) + ". ")
+        extended_time_constraints.append(":- chooseHit(h, T), T > " + str(limit) + ". ")
+        extended_time_constraints.append(":- chooseHit(p, T), T > " + str(limit) + ". ")
+        extended_time_constraints.append(":- chooseHit(g, T), T > " + str(limit) + ". ")
+        extended_time_constraints.append(":- fillHit(k, T), T <= " + str(fill_limit) + ", T > " + str(minimum) + ". ")
+        extended_time_constraints.append(":- fillHit(s, T), T <= " + str(fill_limit) + ", T > " + str(minimum) + ". ")
+        extended_time_constraints.append(":- fillHit(h, T), T <= " + str(fill_limit) + ", T > " + str(minimum) + ". ")
+
+    return extended_time_constraints
 
 #Iterate over the 1 bar patterns until a valid 2+ bar pattern is found (within the search limit).
 #This only applies when attempting to generate a 2+ bar pattern. Otherwise a random 1 bar pattern is chosen.
@@ -348,12 +338,14 @@ def generate_patterns(constraints, fills, save_path, file_name, n = 1, pattern_l
         #Return none if no solution can be found.
         if rand_solution == None:
             return None
-        #Converting the random solution into a (hit, quarter-beat) list of type (char, char).
+        
+        #Splitting the random solution into main pattern hits and fill hits. 
         hit_strs = [item for item in rand_solution if 'f' not in item]
         fill_strs = [item for item in rand_solution if 'f' in item]
         hit_list = []
         fill_list = []
 
+        #Converting the random solution into a (hit, quarter-beat) list of type (char, char).
         for hit in hit_strs:
             hit_list.append(hit[hit.find("(")+1:hit.find(")")].split(","))
         for hit in fill_strs:
