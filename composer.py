@@ -1,5 +1,6 @@
 import subprocess
 from os.path import join as pjoin
+from os import remove as remove_file
 import json
 from random import randint
 
@@ -20,12 +21,12 @@ clingo_command = [clingo_path] + clingo_options
 
 #Define rule paths
 
-all_rules = [['rules\\kick_placement.lp', 'rules\\kick_con_1.lp', 'rules\\kick_con_2.lp'], \
-             ['rules\\snare_placement_exp.lp', 'rules\\snare_placement_conv.lp'], \
-             ['rules\\kick_snare_con_1.lp'], \
-             ['rules\\hat_placement_exp.lp', 'rules\\hat_placement_conv.lp' , 'rules\\hat_con_1.lp', 'rules\\hat_con_2.lp'], \
-             ['rules\\perc_placement.lp', 'rules\\perc_con_1.lp', 'rules\\perc_con_2.lp'], \
-             ['rules\\gsnare_placement.lp', 'rules\\gsnare_con_1.lp', 'rules\\gsnare_con_2.lp']]
+all_rules = [['rules\\hit_placement\\kick_placement.lp', 'rules\\hit_constraints\\kick_con_1.lp', 'rules\\hit_constraints\\kick_con_2.lp'], \
+             ['rules\\hit_placement\\snare_placement_exp.lp', 'rules\\hit_placement\\snare_placement_conv.lp'], \
+             ['rules\\hit_constraints\\kick_snare_con_1.lp'], \
+             ['rules\\hit_placement\\hat_placement_exp.lp', 'rules\\hit_placement\\hat_placement_conv.lp' , 'rules\\hit_constraints\\hat_con_1.lp', 'rules\\hit_constraints\\hat_con_2.lp'], \
+             ['rules\\hit_placement\\perc_placement.lp', 'rules\\hit_constraints\\perc_con_1.lp', 'rules\\hit_constraints\\perc_con_2.lp'], \
+             ['rules\\hit_placement\\gsnare_placement.lp', 'rules\\hit_constraints\\gsnare_con_1.lp', 'rules\\hit_constraints\\gsnare_con_2.lp']]
 
 #Solve the ruleset by accessing the Clingo solver through the command line.
 def _solve(program):
@@ -45,15 +46,15 @@ def _solve(program):
 
 #Write the one bar problem rule set.
 def _write_problem(constraints):
-    rules = ['rules\\time.lp']
+    rules = ['rules\\time_facts\\time.lp']
     i = 0
     for row in all_rules:
         for j in range(0, len(row)):
             if constraints[i][j]:
                 rules.append(all_rules[i][j])
         i += 1
-    rules.append('rules\\time.lp')
-    with open('rules\\initial_problem.lp', 'w') as outfile:
+    #rules.append('rules\\time_facts\\time.lp')
+    with open('rules\\temp\\1_bar_problem.lp', 'w') as outfile:
         for fname in rules:
             with open(fname) as infile:
                 outfile.write(infile.read())    
@@ -63,9 +64,9 @@ def _write_problem(constraints):
 def _generate_solutions(constraints, user_input):
     _write_problem(constraints)
     if user_input:     
-        with open('rules\\initial_problem.lp', 'a') as outfile:
+        with open('rules\\temp\\1_bar_problem.lp', 'a') as outfile:
             outfile.write('\n'.join(user_input) + '\n')
-    problem = open('rules\\initial_problem.lp', 'r').read()
+    problem = open('rules\\temp\\1_bar_problem.lp', 'r').read()
     solutions = _solve(problem)
     #Print the number of patterns found.
     if solutions is not None:
@@ -82,16 +83,16 @@ def _print_hits(pattern_index, hit_list, humanisation, pattern_length = 1):
 
     #X represents the data points to be plotted on the grid. 
     #It also stores velocity data about each hit.
-    X = np.zeros((5, 16 * pattern_length))
+    X = np.zeros((4, 16 * pattern_length))
 
     #iterator
     j = 0
 
     for i in hit_list:
         if i[0] == 'k':
-            X[4][int(i[1])-1] = 1./(volume-abs(humanisation[j])*300)
-        if i[0] == 's':
             X[3][int(i[1])-1] = 1./(volume-abs(humanisation[j])*300)
+        if i[0] == 's':
+            X[2][int(i[1])-1] = 1./(volume-abs(humanisation[j])*300)
         if i[0] == 'g':
             X[2][int(i[1])-1] = 1./(40-abs(humanisation[j])*300)
         if i[0] == 'h':
@@ -108,9 +109,9 @@ def _print_hits(pattern_index, hit_list, humanisation, pattern_length = 1):
     fig, ax = plt.subplots(figsize=(10, 10))
     ax.imshow(X, cmap=plt.get_cmap('gist_gray'))
 
-    y_labels = ['Percussion', 'Hat', 'Ghost Snare', 'Snare', 'Kick']
+    y_labels = ['Percussion', 'Hat', 'Snare', 'Kick']
     ax.set_xticks(list(range(0, 16 * pattern_length)))
-    ax.set_yticks(list(range(0, 5)))
+    ax.set_yticks(list(range(0, 4)))
     ax.set_yticklabels(y_labels)
     ax.set_xticklabels(list(range(1, 16 * pattern_length + 1)))
     
@@ -205,7 +206,7 @@ def _extend_pattern(pattern, extended_length, constraints, fills):
     extended_constraints[5][0] = False
 
     #Create the list of base rule sets to add to the n length problem.
-    n_bar_rules_base = ['rules\\extend_to_n_bars.lp']
+    n_bar_rules_base = ['rules\\pattern_extension\\extend_to_n_bars.lp']
     i = 0
     for row in all_rules:
         for j in range(0, len(row)):
@@ -232,7 +233,7 @@ def _extend_pattern(pattern, extended_length, constraints, fills):
 
         #Add the relevant fill rule set to the problem rules.
         if fill_type != 0:
-            n_bar_rules.append('rules\\fill_' + str(fill_type) + '.lp')
+            n_bar_rules.append('rules\\fills\\fill_' + str(fill_type) + '.lp')
 
         #Generate the relevant time facts for this iteration.
         extended_time = _extend_time((j-2) * 16)
@@ -241,18 +242,18 @@ def _extend_pattern(pattern, extended_length, constraints, fills):
         extended_time_constraints = _extend_time_constraints(fill_type, j * 16)
 
         #Write a new problem rule set for the extended pattern.
-        with open('rules\\' + str(j) + '_bar_problem.lp', 'w') as outfile:
+        with open('rules\\temp\\' + str(j) + '_bar_problem.lp', 'w') as outfile:
             for fname in n_bar_rules:
                 with open(fname) as infile:
                     outfile.write(infile.read())
 
-        with open('rules\\' + str(j) + '_bar_problem.lp', 'a') as outfile:
+        with open('rules\\temp\\' + str(j) + '_bar_problem.lp', 'a') as outfile:
             outfile.write('\n'.join(extended_time) + '\n')
             outfile.write('\n'.join(extended_time_constraints) + '\n')
             #Add the chosen hits from the previous bar.  
             outfile.write('\n'.join([hit + '.' for hit in final_solution]) + '\n')
             
-        problem = open('rules\\' + str(j) + '_bar_problem.lp', 'r').read()
+        problem = open('rules\\temp\\' + str(j) + '_bar_problem.lp', 'r').read()
         solutions = _solve(problem)
 
         #Return None if no valid solutions are found to allow another attempt.
@@ -352,8 +353,9 @@ def generate_patterns(constraints, fills, save_path, file_name, n = 1, pattern_l
             fill_list.append(hit[hit.find("(")+1:hit.find(")")].split(","))
         
         #Removing the hits from hit list that conflict with the drum fill hits.
-        for j in range(0, len(fill_locations), 2):
-            hit_list[:] = [item for item in hit_list if not (int(item[1]) > fill_locations[j] and int(item[1]) <= fill_locations[j+1])]
+        if fill_locations is not None:
+            for j in range(0, len(fill_locations), 2):
+                hit_list[:] = [item for item in hit_list if not (int(item[1]) > fill_locations[j] and int(item[1]) <= fill_locations[j+1])]
 
         #humanisation value to randomly nudge hits around and change velocity.
         #The further away from 0 the hit is nudged, the quieter it is hit.
@@ -365,5 +367,9 @@ def generate_patterns(constraints, fills, save_path, file_name, n = 1, pattern_l
             _write_midi(hit_list, fill_list, save_path, file_name + ".mid", humanisation)
         else:
             _write_midi(hit_list, fill_list, save_path, file_name + "_" + str(i-1) + ".mid", humanisation)
+
+    #Remove temporary problem files
+    for i in range(1, pattern_length+1):
+        remove_file('rules\\temp\\' + str(i) + '_bar_problem.lp')
 
     return pattern_plot
