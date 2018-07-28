@@ -69,8 +69,6 @@ class MainWindow(object):
 
 	patternLength = 1
 
-	numberOfPatterns = 1
-
 	buttonBools = {}
 	for i in range(5):
 		for j in range(16):
@@ -293,12 +291,6 @@ class MainWindow(object):
 
 		self.patternLengthBox.valueChanged.connect(self.pattern_length)
 
-		self.numberOfPatternsBox = QtGui.QSpinBox(self.formLayoutWidget_2)
-		self.numberOfPatternsBox.setObjectName(_fromUtf8("numberOfPatternsBox"))
-		self.numberOfPatternsBox.setMinimum(1)
-
-		self.numberOfPatternsBox.valueChanged.connect(self.number_of_patterns)
-
 		self.fillsBox = QtGui.QCheckBox(self.formLayoutWidget_2)
 		self.fillsBox.setObjectName(_fromUtf8("fillsBox"))
 		self.fillsBox.stateChanged.connect(self.fills_enabled)
@@ -306,19 +298,15 @@ class MainWindow(object):
 		self.saveNameBox = QtGui.QLineEdit(self.formLayoutWidget_2)
 		self.saveNameBox.setObjectName(_fromUtf8("saveNameBox"))	
 		self.saveNameBox.setText("drum_pattern")
-		"""
-		self.inputBox = QtGui.QLineEdit(self.formLayoutWidget_3)
-		self.inputBox.setObjectName(_fromUtf8("inputBox"))
-		"""
+
 		self.inputButtons = {}
 
 		for i in range(5):
 		    for j in range(16):
 		        # keep a reference to the buttons
 		        index = (i, j)
-		        self.inputButtons[index] = QtGui.QPushButton()#'%d, %d' % index)
+		        self.inputButtons[index] = QtGui.QPushButton()
 		        self.inputButtons[index].clicked.connect(self.make_toggle_input(index))
-		        #self.inputButtons[index].setEnabled(True)
 		        # add to the layout
 		        self.gridLayout.addWidget(self.inputButtons[index], i, j + 1)
 
@@ -406,9 +394,6 @@ class MainWindow(object):
 		self.patternLengthLabel = QtGui.QLabel(self.formLayoutWidget_2)
 		self.patternLengthLabel.setObjectName(_fromUtf8("patternLengthLabel"))	
 
-		self.numberOfPatternsLabel = QtGui.QLabel(self.formLayoutWidget_2)
-		self.numberOfPatternsLabel.setObjectName(_fromUtf8("numberOfPatternsLabel"))
-
 		self.fillsLabel = QtGui.QLabel(self.formLayoutWidget_2)
 		self.fillsLabel.setObjectName(_fromUtf8("fillsLabel"))		
 
@@ -467,17 +452,14 @@ class MainWindow(object):
 		self.formLayout_2.setWidget(1, QtGui.QFormLayout.LabelRole, self.patternLengthLabel)
 		self.formLayout_2.setWidget(1, QtGui.QFormLayout.FieldRole, self.patternLengthBox)
 
-		self.formLayout_2.setWidget(2, QtGui.QFormLayout.LabelRole, self.numberOfPatternsLabel)
-		self.formLayout_2.setWidget(2, QtGui.QFormLayout.FieldRole, self.numberOfPatternsBox)
+		self.formLayout_2.setWidget(2, QtGui.QFormLayout.LabelRole, self.fillsLabel)
+		self.formLayout_2.setWidget(2, QtGui.QFormLayout.FieldRole, self.fillsBox)
 
-		self.formLayout_2.setWidget(3, QtGui.QFormLayout.LabelRole, self.fillsLabel)
-		self.formLayout_2.setWidget(3, QtGui.QFormLayout.FieldRole, self.fillsBox)
+		self.formLayout_2.setWidget(3, QtGui.QFormLayout.LabelRole, self.saveNameBoxLabel)
+		self.formLayout_2.setWidget(3, QtGui.QFormLayout.FieldRole, self.saveNameBox)		
 
-		self.formLayout_2.setWidget(4, QtGui.QFormLayout.LabelRole, self.saveNameBoxLabel)
-		self.formLayout_2.setWidget(4, QtGui.QFormLayout.FieldRole, self.saveNameBox)		
-
-		self.formLayout_2.setWidget(5, QtGui.QFormLayout.LabelRole, self.genBtn)
-		self.formLayout_2.setWidget(5, QtGui.QFormLayout.FieldRole, self.playBtn)
+		self.formLayout_2.setWidget(4, QtGui.QFormLayout.LabelRole, self.genBtn)
+		self.formLayout_2.setWidget(4, QtGui.QFormLayout.FieldRole, self.playBtn)
 		self.playBtn.setVisible(False)
 
 		self.playShortcut = QtGui.QShortcut(QtGui.QKeySequence("Ctrl+P"), self.formLayoutWidget_2)
@@ -544,7 +526,6 @@ class MainWindow(object):
 		self.gSnareLabel4.setText(_translate("Window", "Ghost Snare Experimentalness", None))
 		self.humanisationLabel.setText(_translate("Window", "Humanisation Amount", None))
 		self.patternLengthLabel.setText(_translate("Window", "Pattern Length", None))
-		self.numberOfPatternsLabel.setText(_translate("Window", "Number of Patterns", None))
 		self.fillsLabel.setText(_translate("Window", "Enable Fills", None))
 		self.saveNameBoxLabel.setText(_translate("Window", "File Save Name", None))
 		self.menuFile.setTitle(_translate("Window", "File", None))
@@ -670,9 +651,6 @@ class MainWindow(object):
 	def pattern_length(self, text):
 		self.patternLength = self.patternLengthBox.value()
 
-	def number_of_patterns(self):
-		self.numberOfPatterns = self.numberOfPatternsBox.value()
-
 	def constraint_assignment(self):
 		if self.snarePlacement == False:
 			self.snareExpPlacement = False
@@ -796,7 +774,7 @@ class MainWindow(object):
 
 			self.playBtn.setVisible(False)
 
-		self.patternPlot = cp.generate_patterns(constraints, self.fills, self.savePath, self.saveName, self.numberOfPatterns, self.patternLength, self.humanisationAmount, input)
+		self.patternPlot = cp.generate_patterns(constraints, self.savePath, self.saveName, self.patternLength, self.fills, self.humanisationAmount, input)
 
 		#Allow user to see the play button
 		self.playBtn.setVisible(True)
@@ -831,7 +809,7 @@ class MainWindow(object):
 			pass
 
 
-def main():
+def run_app():
 
 	app = QtGui.QApplication(sys.argv)
 	Window = QtGui.QMainWindow()
@@ -839,5 +817,4 @@ def main():
 	GUI.setupUi(Window)
 	Window.show()
 	sys.exit(app.exec_())
-
-main()	
+	

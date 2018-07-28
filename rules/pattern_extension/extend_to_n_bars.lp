@@ -1,7 +1,6 @@
 %A set of boolean variables that determine which modifications to 
 %the one bar pattern will take place.
 {a}. {b}. {c}. {d}. {e}. {f}. {g}. {h}. {i}. {j}. 
-%{k}. {l}. {m}. {n}.
 
 %Extend the 1 measure pattern to the length of 2 bars or 32 quarter-beats.
 %This depends on which booleans are True or not True.
@@ -32,13 +31,6 @@ chooseHit(g, T+16) :- chooseHit(g, T), time(T).
 1 {chooseHit(s, T+16+K) : add(K)} 1 :- chooseHit(s, T), odd2Q(T), f, h.
 1 {chooseHit(s, T+16+K) : add(K)} 1 :- chooseHit(s, T), odd3Q(T), f, i.
 1 {chooseHit(s, T+16+K) : add(K)} 1 :- chooseHit(s, T), odd4Q(T), f, j.
-
-%Possibility to place kick hits on the 19th quarter-beat and 27th quarter-beat.
-%chooseHit(k, 19) :- k.
-%chooseHit(k, 27) :- l.
-
-%chooseHit(s, T+18) :- chooseHit(s, T), oddSH(T), m. 
-%chooseHit(g, T+19) :- chooseHit(g, T), oddSH(T), n.
 
 %Snares cannot be placed 2 or 4 quarter-beats apart.
 :- chooseHit(s, T), chooseHit(s, T+2).
