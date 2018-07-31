@@ -5,6 +5,3 @@ X {chooseHit(s, T) : odd(T)} Y :- snareMin(X), snareMax(Y).
 
 %Snares cannot be placed 2 quarter-beats apart.
 :- chooseHit(s, T), chooseHit(s, T+2).
-
-%snareMin(2).
-%snareMax(3).

@@ -737,7 +737,7 @@ class MainWindow(object):
 
 	def play_audio(self):
 		midiPath = self.savePath + "\\" + self.saveName + ".mid"
-		FluidSynth('Soundfont\\dnb_kit.sf2').play_midi(midiPath)
+		FluidSynth('soundfont\\dnb_kit.sf2').play_midi(midiPath)
 
 	def null_method(self):
 		return

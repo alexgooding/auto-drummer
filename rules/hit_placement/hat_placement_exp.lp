@@ -12,8 +12,3 @@
 %Hit density constraint.
 
 X {chooseHit(h, T) : time(T)} Y :- hatExpMin(X), hatExpMax(Y).
-
-%Hit density parameters.
-
-%hatExpMin(0).
-%hatExpMax(16).
