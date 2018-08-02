@@ -16,8 +16,6 @@ from midiutil import MIDIFile
 #Configure Clingo parameters
 
 clingo_path = 'solver\\clingo.exe'
-clingo_options = ['--outf=2','-n 0', '--time-limit=10']
-clingo_command = [clingo_path] + clingo_options
 
 #Define rule paths
 
@@ -30,6 +28,10 @@ all_rules = [['rules\\hit_placement\\kick_placement.lp', 'rules\\hit_constraints
 
 #Solve the ruleset by accessing the Clingo solver through the command line.
 def _solve(problem):
+    #New clingo options including a new random seed.
+    seed = randint(0, 123456789)
+    clingo_options = ['--sign-def=rnd', '--seed=' + str(seed), '--outf=2', '-n 1', '--time-limit=10']
+    clingo_command = [clingo_path] + clingo_options
     #Encode the problem in JSON for ease transfer to the command line. 
     input = problem.encode()
     #Stop the console window from showing during execution.
@@ -80,11 +82,12 @@ def _generate_solutions(hit_constraints, fill_constraints, problem_input, bar_in
     problem = open('rules\\temp\\' + str(bar_index) + '_bar_problem.lp', 'r').read()
     solutions = _solve(problem)
     #Print the number of patterns found.
+    """
     if solutions is not None:
         print(str(len(solutions)) + " " + str(bar_index) + " bar patterns have been found.\n")
     else:
         print("No patterns have been found.\n")
-
+    """
     return solutions
 
 #Construct a list with new time facts relevant to the extended problem.
