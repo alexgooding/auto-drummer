@@ -13,8 +13,7 @@ The GUI makes it clear what parameters can be controlled.
 
 ## Prerequisites
 
-To use the single file distribution, it must be opened on Windows OS. The distribution may run on Linux OS and Mac OS through Wine, 
-although this is untested. Download Wine from https://www.winehq.org/. To run Auto Drummer enter
+To use the single file distribution, it must be opened on Windows OS. The distribution also runs on Linux OS and Mac OS through Wine. Download Wine from https://www.winehq.org/. This is the recomended method to run Auto Drummer on non-Windows systems. When Wine is installed enter
 
 ```
 wine Auto Drummer.exe
@@ -46,6 +45,8 @@ downloading the relevant wheel from https://www.lfd.uci.edu/~gohlke/pythonlibs/#
 ```
 C:\path\where\wheel\is\> pip install wheel_file.whl
 ```
+
+Depending on your operating system, you may need to replace the Clingo solver. Please consult https://github.com/potassco/clingo/releases for more information.
 
 Once everything is installed correctly, the program can be run with
 
