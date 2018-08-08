@@ -751,8 +751,12 @@ class MainWindow(object):
 		return input
 
 	def play_audio(self):
-		midiPath = self.savePath + "\\" + self.saveName + ".mid"
-		FluidSynth('soundfont\\dnb_kit.sf2').play_midi(midiPath)
+		sep = os.sep
+		midiPath = self.savePath + sep + self.saveName + ".mid"
+		if os.name == "posix":
+			# Unwrap QString obj because it doesn't work with startswith() in play_midi()
+			midiPath = str(midiPath)
+		FluidSynth('soundfont'+sep+'dnb_kit.sf2').play_midi(midiPath)
 
 	def null_method(self):
 		return
