@@ -47,10 +47,6 @@ chooseHit(g, T+16) :- chooseHit(g, T), time(T).
 1 {chooseHit(s, T+16+K) : add(K)} 1 :- chooseHit(s, T), odd3Q(T), f, i.
 1 {chooseHit(s, T+16+K) : add(K)} 1 :- chooseHit(s, T), odd4Q(T), f, j.
 
-%Snares cannot be placed 2 or 4 quarter-beats apart.
-:- chooseHit(s, T), chooseHit(s, T+2).
-:- chooseHit(s, T), chooseHit(s, T+4).
-
 %Additional facts to shift hits and to break the measure up further.
 add(-2;0;2).
 
