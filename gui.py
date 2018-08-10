@@ -15,8 +15,8 @@
 
 import sys 
 import os
+import subprocess
 from PyQt4 import QtGui, QtCore
-from midi2audio import FluidSynth #Also requires fluidsynth install
 import composer as cp
 
 try:
@@ -752,7 +752,7 @@ class MainWindow(object):
 
 	def play_audio(self):
 		midiPath = self.savePath + "\\" + self.saveName + ".mid"
-		FluidSynth('soundfont\\dnb_kit.sf2').play_midi(midiPath)
+		subprocess.call(['fluidsynth\\fluidsynth', '-i', '-r', '44100', 'soundfont\\dnb_kit.sf2', midiPath])
 
 	def null_method(self):
 		return
