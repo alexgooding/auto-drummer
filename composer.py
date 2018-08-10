@@ -13,12 +13,12 @@
 ## You should have received a copy of the GNU General Public License
 ## along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import subprocess
+#import subprocess
 from os.path import join as pjoin
 from os import remove as remove_file
 from os import name as osname
 from os import sep
-import json
+#import json
 from random import randint
 
 import numpy as np
@@ -29,12 +29,7 @@ from matplotlib.ticker import AutoMinorLocator
 from matplotlib.ticker import FixedLocator
 
 from midiutil import MIDIFile
-
-#Configure Clingo parameters
-
-clingo_path = 'solver' + sep + 'clingo'
-if osname == 'nt':
-    clingo_path += '.exe'
+import clingo
 
 #Define rule paths
 rules_hp = 'rules\\hit_placement\\'.replace('\\',sep)
@@ -55,24 +50,24 @@ all_rules = [[rules_hp + 'kick_placement.lp', rules_hc + 'kick_con_1.lp', rules_
 def _solve(problem):
     #New clingo options including a new random seed.
     seed = randint(0, 123456789)
-    clingo_options = ['--sign-def=rnd', '--seed=' + str(seed), '--outf=2', '-n 1', '--time-limit=10']
-    clingo_command = [clingo_path] + clingo_options
-    #Encode the problem in JSON for ease transfer to the command line. 
-    input = problem.encode()
-    startupinfo = None
-    if osname == "nt":
-        #Stop the console window from showing during execution.
-        #This is used when distributing as a .exe
-        startupinfo = subprocess.STARTUPINFO()
-        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-    else:
-        clingo_command[1] = '--sign-def=3'
-
-    process = subprocess.Popen(clingo_command, stdin=subprocess.PIPE, stderr=subprocess.PIPE, stdout=subprocess.PIPE, startupinfo=startupinfo)
-    output, error = process.communicate(input)
-    result = json.loads(output.decode())
-    if result['Result'] == 'SATISFIABLE':
-        return [value['Value'] for value in result['Call'][0]['Witnesses']]
+    output = []
+    def onmodel(m):
+        output.append(repr(m).split(' '))
+    def onfinish(m):
+        output.append((repr(m)))
+ 
+    ctl = clingo.Control()
+    ctl.load(problem)
+    ctl.ground([("base",[])])
+    #Configure Clingo parameters
+    ctl.configuration.solver.sign_def = "rnd"
+    ctl.configuration.solver.seed = str(seed)
+    #Solve
+    ctl.solve(on_model=onmodel, on_finish=onfinish)
+    
+    if output[1] == 'SAT':
+        output.pop()
+        return output
     else:
         return None
 
@@ -108,8 +103,9 @@ def _write_problem(initial_constraints, additional_constraints, problem_input, b
 #Print the number of solutions and return any solutions found.
 def _generate_solutions(hit_constraints, fill_constraints, problem_input, bar_index):
     _write_problem(hit_constraints, fill_constraints, problem_input, bar_index)
-    problem = open(rules_t + str(bar_index) + '_bar_problem.lp', 'r').read()
-    solutions = _solve(problem)
+    solutions = _solve(rules_t + str(bar_index) + '_bar_problem.lp')
+#     problem = open(rules_t + str(bar_index) + '_bar_problem.lp', 'r').read()
+#     solutions = _solve(problem)
     #Print the number of patterns found.
     """
     if solutions is not None:
