@@ -37,7 +37,11 @@ downloading the relevant wheel from https://www.lfd.uci.edu/~gohlke/pythonlibs/#
 ```
 C:\path\where\wheel\is\> pip install wheel_file.whl
 ```
-Non-Windows users may need to replace the Clingo solver. Please consult https://github.com/potassco/clingo/releases for more information.
+Non-Windows users will need to also install the Clingo package. Please consult https://github.com/potassco/clingo/releases for more information. The most simple method for installation is with conda. i.e.
+
+```
+conda install -c potassco clingo
+```
 
 Everything necessary to generate the patterns themselves is listed above. 
 However, to play preview audio of the patterns, FluidSynth must be installed. This can be done by consulting the FluidSynth website, http://www.fluidsynth.org.
