@@ -20,22 +20,13 @@ although this is untested. Download Wine from https://www.winehq.org/. To run Au
 wine Auto Drummer.exe
 ```
 
-Everything necessary to generate the patterns themselves is contained in this distribution. 
-However, to play preview audio of the patterns, FluidSynth must be installed. This can be done through http://www.fluidsynth.org, or 
-through a pip install:
-
-```
-pip install fluidsynth
-```
-
 ## Installing
 
-To deploy from the command line, several packages are required as well as a Python 3.X build. 
+If you are not using Windows OS, to deploy from the command line, several packages are required as well as a Python 2.X or 3.X build. 
 Download Python from https://www.python.org/downloads. All other necessary packages can all be installed via pip once Python is installed.
 
 ```
 pip install pyqt4
-pip install midi2audio
 pip install numpy
 pip install matplotlib
 pip install MIDIUtil
@@ -46,6 +37,9 @@ downloading the relevant wheel from https://www.lfd.uci.edu/~gohlke/pythonlibs/#
 ```
 C:\path\where\wheel\is\> pip install wheel_file.whl
 ```
+
+Everything necessary to generate the patterns themselves is listed above. 
+However, to play preview audio of the patterns, FluidSynth must be installed. This can be done by consulting the FluidSynth website, http://www.fluidsynth.org.
 
 Once everything is installed correctly, the program can be run with
 
