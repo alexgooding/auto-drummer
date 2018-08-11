@@ -13,28 +13,20 @@ The GUI makes it clear what parameters can be controlled.
 
 ## Prerequisites
 
-To use the single file distribution, it must be opened on Windows OS. The distribution also runs on Linux OS and Mac OS through Wine. Download Wine from https://www.winehq.org/. This is the recomended method to run Auto Drummer on non-Windows systems. When Wine is installed enter
+To use the single file distribution, it must be opened on Windows OS. The distribution may run on Linux OS and Mac OS through Wine, 
+although this is untested. Download Wine from https://www.winehq.org/. To run Auto Drummer enter
 
 ```
 wine Auto Drummer.exe
 ```
 
-Everything necessary to generate the patterns themselves is contained in this distribution. 
-However, to play preview audio of the patterns, FluidSynth must be installed. This can be done through http://www.fluidsynth.org, or 
-through a pip install:
-
-```
-pip install fluidsynth
-```
-
 ## Installing
 
-To deploy from the command line, several packages are required as well as a Python 3.X build. 
+If you are not using Windows OS, to deploy from the command line, several packages are required as well as a Python 2.X or 3.X build. 
 Download Python from https://www.python.org/downloads. All other necessary packages can all be installed via pip once Python is installed.
 
 ```
 pip install pyqt4
-pip install midi2audio
 pip install numpy
 pip install matplotlib
 pip install MIDIUtil
@@ -45,8 +37,10 @@ downloading the relevant wheel from https://www.lfd.uci.edu/~gohlke/pythonlibs/#
 ```
 C:\path\where\wheel\is\> pip install wheel_file.whl
 ```
+Non-Windows users may need to replace the Clingo solver. Please consult https://github.com/potassco/clingo/releases for more information.
 
-Depending on your operating system, you may need to replace the Clingo solver. Please consult https://github.com/potassco/clingo/releases for more information.
+Everything necessary to generate the patterns themselves is listed above. 
+However, to play preview audio of the patterns, FluidSynth must be installed. This can be done by consulting the FluidSynth website, http://www.fluidsynth.org.
 
 Once everything is installed correctly, the program can be run with
 
@@ -61,4 +55,3 @@ python auto_drummer.py
 ## License
 
 This project is licensed under the GNU General Public License - see the [LICENSE](LICENSE) file for details.
-
