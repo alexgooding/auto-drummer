@@ -65,7 +65,7 @@ def _solve(problem):
     #Solve
     ctl.solve(on_model=onmodel, on_finish=onfinish)
     
-    if output[1] == 'SAT':
+    if len(output) > 0 and output[1] == 'SAT':
         output.pop()
         return output
     else:
