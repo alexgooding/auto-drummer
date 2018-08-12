@@ -13,16 +13,19 @@ The GUI makes it clear what parameters can be controlled.
 
 ## Prerequisites
 
-To use the single file distribution, it must be opened on Windows OS. The distribution may run on Linux OS and Mac OS through Wine, 
+To use the single file distribution, it must be installed on Windows OS. The distribution may run on Linux OS and Mac OS through Wine, 
 although this is untested. Download Wine from https://www.winehq.org/. To run Auto Drummer enter
 
 ```
 wine Auto Drummer.exe
 ```
 
+Everything necessary to generate the patterns themselves is listed below or included in the installer for users with a Windows enviornment. 
+However, to play preview audio of the patterns, FluidSynth must be installed. This can be done by consulting the FluidSynth website, http://www.fluidsynth.org.
+
 ## Installing
 
-If you are not using Windows OS, to deploy from the command line, several packages are required as well as a Python 2.X or 3.X build. 
+If you are not using a Windows enviornment, to deploy from the command line, several packages are required as well as a Python 2.X or 3.X build. 
 Download Python from https://www.python.org/downloads. All other necessary packages can all be installed via pip once Python is installed.
 
 ```
@@ -37,9 +40,11 @@ downloading the relevant wheel from https://www.lfd.uci.edu/~gohlke/pythonlibs/#
 ```
 C:\path\where\wheel\is\> pip install wheel_file.whl
 ```
+Users not using a Windows enviornment will need to also install the Clingo package. Please consult https://github.com/potassco/clingo/releases for more information. The most simple method for installation is with conda. i.e.
 
-Everything necessary to generate the patterns themselves is listed above. 
-However, to play preview audio of the patterns, FluidSynth must be installed. This can be done by consulting the FluidSynth website, http://www.fluidsynth.org.
+```
+conda install -c potassco clingo
+```
 
 Once everything is installed correctly, the program can be run with
 
@@ -49,7 +54,7 @@ python auto_drummer.py
 
 ## Authors
 
-* **Alex Gooding**
+* **Alex Gooding** - *Creator/Developer*
 
 ## License
 
