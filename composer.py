@@ -13,10 +13,10 @@
 ## You should have received a copy of the GNU General Public License
 ## along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-import subprocess
 from os.path import join as pjoin
 from os import remove as remove_file
-import json
+from os import name as osname
+from os import sep
 from random import randint
 
 import numpy as np
@@ -27,38 +27,45 @@ from matplotlib.ticker import AutoMinorLocator
 from matplotlib.ticker import FixedLocator
 
 from midiutil import MIDIFile
-
-#Configure Clingo parameters
-
-clingo_path = 'solver\\clingo.exe'
+import clingo
 
 #Define rule paths
+rules_hp = 'rules\\hit_placement\\'.replace('\\',sep)
+rules_hc = 'rules\\hit_constraints\\'.replace('\\',sep)
+rules_t  = 'rules\\temp\\'.replace('\\',sep)
+rules_f  = 'rules\\fills\\fill_'.replace('\\',sep)
+rules_pe = 'rules\\pattern_extension\\'.replace('\\',sep)
+rules_tf = 'rules\\time_facts\\'.replace('\\',sep)
 
-all_rules = [['rules\\hit_placement\\kick_placement.lp', 'rules\\hit_constraints\\kick_con_1.lp', 'rules\\hit_constraints\\kick_con_2.lp'], \
-             ['rules\\hit_placement\\snare_placement_exp.lp', 'rules\\hit_placement\\snare_placement_conv.lp'], \
-             ['rules\\hit_constraints\\kick_snare_con_1.lp'], \
-             ['rules\\hit_placement\\hat_placement_exp.lp', 'rules\\hit_placement\\hat_placement_conv.lp' , 'rules\\hit_constraints\\hat_con_1.lp', 'rules\\hit_constraints\\hat_con_2.lp'], \
-             ['rules\\hit_placement\\perc_placement.lp', 'rules\\hit_constraints\\perc_con_1.lp', 'rules\\hit_constraints\\perc_con_2.lp'], \
-             ['rules\\hit_placement\\gsnare_placement.lp', 'rules\\hit_constraints\\gsnare_con_1.lp', 'rules\\hit_constraints\\gsnare_con_2.lp']]
+all_rules = [[rules_hp + 'kick_placement.lp', rules_hc + 'kick_con_1.lp', rules_hc + 'kick_con_2.lp'], \
+             [rules_hp + 'snare_placement_exp.lp', rules_hp + 'snare_placement_conv.lp'], \
+             [rules_hc + 'kick_snare_con_1.lp'], \
+             [rules_hp + 'hat_placement_exp.lp', rules_hp + 'hat_placement_conv.lp' , rules_hc + 'hat_con_1.lp', rules_hc + 'hat_con_2.lp'], \
+             [rules_hp + 'perc_placement.lp', rules_hc + 'perc_con_1.lp', rules_hc + 'perc_con_2.lp'], \
+             [rules_hp + 'gsnare_placement.lp', rules_hc + 'gsnare_con_1.lp', rules_hc + 'gsnare_con_2.lp']]
 
 #Solve the ruleset by accessing the Clingo solver through the command line.
 def _solve(problem):
     #New clingo options including a new random seed.
     seed = randint(0, 123456789)
-    clingo_options = ['--sign-def=rnd', '--seed=' + str(seed), '--outf=2', '-n 1', '--time-limit=10']
-    clingo_command = [clingo_path] + clingo_options
-    #Encode the problem in JSON for ease transfer to the command line. 
-    input = problem.encode()
-    #Stop the console window from showing during execution.
-    #This is used when distributing as a .exe
-    startupinfo = subprocess.STARTUPINFO()
-    startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-
-    process = subprocess.Popen(clingo_command, stdin=subprocess.PIPE, stderr=subprocess.PIPE, stdout=subprocess.PIPE, startupinfo=startupinfo)
-    output, error = process.communicate(input)
-    result = json.loads(output.decode())
-    if result['Result'] == 'SATISFIABLE':
-        return [value['Value'] for value in result['Call'][0]['Witnesses']]
+    output = []
+    def onmodel(m):
+        output.append(repr(m).split(' '))
+    def onfinish(m):
+        output.append((repr(m)))
+ 
+    ctl = clingo.Control()
+    ctl.load(problem)
+    ctl.ground([("base",[])])
+    #Configure Clingo parameters
+    ctl.configuration.solver.sign_def = "rnd"
+    ctl.configuration.solver.seed = str(seed)
+    #Solve
+    ctl.solve(on_model=onmodel, on_finish=onfinish)
+    
+    if output[0] != 'UNSAT':
+        output.pop()
+        return output
     else:
         return None
 
@@ -66,9 +73,9 @@ def _solve(problem):
 def _write_problem(initial_constraints, additional_constraints, problem_input, bar_index):
     rules = []
     if bar_index == 1:
-        rules = ['rules\\time_facts\\time.lp']
+        rules = [rules_tf + 'time.lp']
     else:
-        rules = ['rules\\pattern_extension\\extend_to_n_bars.lp']
+        rules = [rules_pe + 'extend_to_n_bars.lp']
 
     #Determine which initial constraints to include from the all_rules set.
     i = 0
@@ -81,28 +88,20 @@ def _write_problem(initial_constraints, additional_constraints, problem_input, b
     if additional_constraints:
         rules.append(additional_constraints)
 
-    with open('rules\\temp\\' + str(bar_index) + '_bar_problem.lp', 'w') as outfile:
+    with open(rules_t + str(bar_index) + '_bar_problem.lp', 'w') as outfile:
         for fname in rules:
             with open(fname) as infile:
                 outfile.write(infile.read())  
     #Append user input to the problem.
     if problem_input:     
-        with open('rules\\temp\\' + str(bar_index) + '_bar_problem.lp', 'a') as outfile:
+        with open(rules_t + str(bar_index) + '_bar_problem.lp', 'a') as outfile:
             outfile.write('\n'.join(problem_input) + '\n')  
 
 #Open the problem rule set generated by _write_problem and solve using _solve 
 #Print the number of solutions and return any solutions found.
 def _generate_solutions(hit_constraints, fill_constraints, problem_input, bar_index):
     _write_problem(hit_constraints, fill_constraints, problem_input, bar_index)
-    problem = open('rules\\temp\\' + str(bar_index) + '_bar_problem.lp', 'r').read()
-    solutions = _solve(problem)
-    #Print the number of patterns found.
-    """
-    if solutions is not None:
-        print(str(len(solutions)) + " " + str(bar_index) + " bar patterns have been found.\n")
-    else:
-        print("No patterns have been found.\n")
-    """
+    solutions = _solve(rules_t + str(bar_index) + '_bar_problem.lp')
     return solutions
 
 #Construct a list with new time facts relevant to the extended problem.
@@ -167,7 +166,7 @@ def _extend_pattern(pattern, extended_length, constraints, fills):
     extended_constraints[5][0] = False
 
     #Create the list of base rule sets to add to the n length problem.
-    n_bar_rules_base = ['rules\\pattern_extension\\extend_to_n_bars.lp']
+    n_bar_rules_base = [rules_pe + 'extend_to_n_bars.lp']
     i = 0
     for row in all_rules:
         for j in range(0, len(row)):
@@ -195,7 +194,7 @@ def _extend_pattern(pattern, extended_length, constraints, fills):
         #Add the relevant fill rule set to the problem rules.
         fill_constraints = ''
         if fill_type != 0:
-            fill_constraints = 'rules\\fills\\fill_' + str(fill_type) + '.lp'
+            fill_constraints = rules_f + str(fill_type) + '.lp'
 
         #Generate the relevant time facts for this iteration.
         extended_time = _extend_time((j-2) * 16)
@@ -357,6 +356,9 @@ def _write_midi(hit_list, fill_list, save_path, file_name, humanisation):
         if i[0] == 'h':
             midi_patttern.addNote(0, 0, 62, float(i[1])/4-offset+humanisation[j], duration, int(volume-12-abs(humanisation[j])*500))
             
+    if osname == "posix":
+        # Unwrap QString obj because it doesn't work with posixpath() in os.path.join()
+        file_name = str(file_name)            
     file_path = pjoin(save_path, file_name)
     with open(file_path, "wb") as output_file:
         midi_patttern.writeFile(output_file) 
@@ -387,6 +389,6 @@ def generate_patterns(constraints, save_path, file_name, pattern_length = 1, fil
 
     #Remove temporary problem files
     for i in range(1, pattern_length+1):
-        remove_file('rules\\temp\\' + str(i) + '_bar_problem.lp')
+        remove_file(rules_t + str(i) + '_bar_problem.lp')
 
     return pattern_plot
