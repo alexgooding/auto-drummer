@@ -13,12 +13,11 @@
 ## You should have received a copy of the GNU General Public License
 ## along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#import subprocess
 from os.path import join as pjoin
 from os import remove as remove_file
 from os import name as osname
 from os import sep
-#import json
+
 from random import randint
 
 import numpy as np
@@ -65,7 +64,8 @@ def _solve(problem):
     #Solve
     ctl.solve(on_model=onmodel, on_finish=onfinish)
     
-    if len(output) > 0 and output[1] == 'SAT':
+
+    if len(output) > 0 and output[0] != 'UNSAT':
         output.pop()
         return output
     else:
@@ -104,15 +104,6 @@ def _write_problem(initial_constraints, additional_constraints, problem_input, b
 def _generate_solutions(hit_constraints, fill_constraints, problem_input, bar_index):
     _write_problem(hit_constraints, fill_constraints, problem_input, bar_index)
     solutions = _solve(rules_t + str(bar_index) + '_bar_problem.lp')
-#     problem = open(rules_t + str(bar_index) + '_bar_problem.lp', 'r').read()
-#     solutions = _solve(problem)
-    #Print the number of patterns found.
-    """
-    if solutions is not None:
-        print(str(len(solutions)) + " " + str(bar_index) + " bar patterns have been found.\n")
-    else:
-        print("No patterns have been found.\n")
-    """
     return solutions
 
 #Construct a list with new time facts relevant to the extended problem.
