@@ -17,6 +17,7 @@ from os.path import join as pjoin
 from os import remove as remove_file
 from os import name as osname
 from os import sep
+
 from random import randint
 
 import numpy as np
@@ -63,7 +64,8 @@ def _solve(problem):
     #Solve
     ctl.solve(on_model=onmodel, on_finish=onfinish)
     
-    if output[0] != 'UNSAT':
+
+    if len(output) > 0 and output[0] != 'UNSAT':
         output.pop()
         return output
     else:
