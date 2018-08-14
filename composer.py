@@ -44,9 +44,9 @@ all_rules = [[rules_hp + 'kick_placement.lp', rules_hc + 'kick_con_1.lp', rules_
              [rules_hp + 'perc_placement.lp', rules_hc + 'perc_con_1.lp', rules_hc + 'perc_con_2.lp'], \
              [rules_hp + 'gsnare_placement.lp', rules_hc + 'gsnare_con_1.lp', rules_hc + 'gsnare_con_2.lp']]
 
-#Solve the ruleset by accessing the Clingo solver through the command line.
+#Solve the ruleset with the Clingo module.
 def _solve(problem):
-    #New clingo options including a new random seed.
+    #Set a new random seed.
     seed = randint(0, 123456789)
     output = []
     def onmodel(m):

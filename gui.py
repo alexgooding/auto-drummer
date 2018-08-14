@@ -15,7 +15,6 @@
 
 import sys 
 import os
-import platform
 import subprocess
 from PyQt4 import QtGui, QtCore
 import composer as cp
@@ -754,7 +753,7 @@ class MainWindow(object):
 	def play_audio(self):
 		sep = os.sep
 		midiPath = self.savePath + sep + self.saveName + ".mid"
-		subprocess.call(['fluidsynth', '-i', '-r', '44100', 'soundfont'+sep+'dnb_kit.sf2', midiPath])
+		subprocess.call(['fluidsynth', '-i', '-r', '44100', 'soundfont'+sep+'dnb_kit.sf2', midiPath], shell=True)
 
 	def null_method(self):
 		return
