@@ -141,10 +141,16 @@ class MainWindow(object):
         self.formLayout.setObjectName(_fromUtf8("formLayout"))
 
         self.formLayoutWidget_2 = QtGui.QWidget(self.basicTab)
-        self.formLayoutWidget_2.setGeometry(QtCore.QRect(200, -1, 400, 700))
+        self.formLayoutWidget_2.setGeometry(QtCore.QRect(300, -1, 185, 700))
         self.formLayoutWidget_2.setObjectName(_fromUtf8("formLayoutWidget_2"))
         self.formLayout_2 = QtGui.QFormLayout(self.formLayoutWidget_2)
         self.formLayout_2.setObjectName(_fromUtf8("formLayout_2"))
+
+        self.formLayoutWidget_3 = QtGui.QWidget(self.basicTab)
+        self.formLayoutWidget_3.setGeometry(QtCore.QRect(300, 600, 185, 100))
+        self.formLayoutWidget_3.setObjectName(_fromUtf8("formLayoutWidget_3"))
+        self.formLayout_3 = QtGui.QFormLayout(self.formLayoutWidget_3)
+        self.formLayout_3.setObjectName(_fromUtf8("formLayout_3"))
 
         # Check boxes, sliders, dials, buttons and text boxes
         self.kickBox1 = QtGui.QCheckBox(self.formLayoutWidget)
@@ -363,6 +369,18 @@ class MainWindow(object):
         self.playBtn.clicked.connect(self.play_audio)
         self.playBtn.resize(self.genBtn.sizeHint())
 
+        self.likeBtn = QtGui.QPushButton(self.formLayoutWidget_2)
+        self.likeBtn.setObjectName(_fromUtf8("pushButton_3"))
+        self.likeBtn.sizeHint()
+        self.likeBtn.clicked.connect(self.like_pattern)
+        self.likeBtn.resize(self.genBtn.sizeHint())
+
+        self.dislikeBtn = QtGui.QPushButton(self.formLayoutWidget_2)
+        self.dislikeBtn.setObjectName(_fromUtf8("pushButton_4"))
+        self.dislikeBtn.sizeHint()
+        self.dislikeBtn.clicked.connect(self.dislike_pattern)
+        self.dislikeBtn.resize(self.genBtn.sizeHint())
+
         # Create labels
 
         self.kickLabel1 = QtGui.QLabel(self.formLayoutWidget)
@@ -484,6 +502,11 @@ class MainWindow(object):
         self.formLayout_2.setWidget(4, QtGui.QFormLayout.FieldRole, self.playBtn)
         self.playBtn.setVisible(False)
 
+        self.formLayout_3.setWidget(1, QtGui.QFormLayout.LabelRole, self.likeBtn)
+        self.formLayout_3.setWidget(1, QtGui.QFormLayout.FieldRole, self.dislikeBtn)
+        self.likeBtn.setVisible(False)
+        self.dislikeBtn.setVisible(False)
+
         self.playShortcut = QtGui.QShortcut(QtGui.QKeySequence("Ctrl+P"), self.formLayoutWidget_2)
         self.playShortcut.activated.connect(self.play_audio)
 
@@ -525,6 +548,8 @@ class MainWindow(object):
         self.gSnareBox1.setText(_translate("Window", "Ghost Snare", None))
         self.genBtn.setText(_translate("Window", "Generate", None))
         self.playBtn.setText(_translate("Window", "Play", None))
+        self.likeBtn.setText(_translate("Window", "Like", None))
+        self.dislikeBtn.setText(_translate("Window", "Dislike", None))
         self.kickLabel1.setText(_translate("Window", "Kick Toggle", None))
         self.kickLabel2.setText(_translate("Window", "Kick Density Minimum", None))
         self.kickLabel3.setText(_translate("Window", "Kick Density Maximum", None))
@@ -800,8 +825,10 @@ class MainWindow(object):
         self.patternPlot = self.composer.generate_patterns(constraints, self.savePath, self.saveName, self.patternLength,
                                                 self.fills, self.humanisationAmount, input)
 
-        # Allow user to see the play button
+        # Allow user to see the play, like and dislike buttons
         self.playBtn.setVisible(True)
+        self.likeBtn.setVisible(True)
+        self.dislikeBtn.setVisible(True)
 
         # Plotting the pattern generated if one exists
         if self.patternPlot == None:
@@ -821,6 +848,11 @@ class MainWindow(object):
             self.success = True
             self.fail = False
             self.c += 1
+
+    def like_pattern(self):
+        self.composer.assign_preference(True)
+    def dislike_pattern(self):
+        self.composer.assign_preference(False)
 
     def quit(self):
         choice = QtGui.QMessageBox.question(None, "Exit",

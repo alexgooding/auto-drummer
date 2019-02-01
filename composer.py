@@ -28,8 +28,15 @@ from matplotlib.ticker import FixedLocator
 
 from midiutil import MIDIFile
 import clingo
+from preference_tracker import Tracker
 
 class Composer:
+    #Define array of composed pattern
+    composed_pattern = [[]]
+
+    #Create the preference tracker
+    tracker = Tracker()
+
     #Define rule paths
     rules_hp = 'rules\\hit_placement\\'.replace('\\',sep)
     rules_hc = 'rules\\hit_constraints\\'.replace('\\',sep)
@@ -385,7 +392,8 @@ class Composer:
         #The further away from 0 the hit is nudged, the quieter it is hit.
         humanisation = np.random.normal(0, humanisation_intensity, len(hit_list + fill_list))
 
-        pattern_plot = self._print_hits(rand_index, hit_list + fill_list, humanisation, pattern_length)
+        self.composed_pattern = hit_list + fill_list
+        pattern_plot = self._print_hits(rand_index, self.composed_pattern, humanisation, pattern_length)
         self._write_midi(hit_list, fill_list, save_path, file_name + ".mid", humanisation)
 
         #Remove temporary problem files
@@ -393,3 +401,11 @@ class Composer:
             remove_file(self.rules_t + str(i) + '_bar_problem.lp')
 
         return pattern_plot
+
+    def assign_preference(self, like_bool):
+        for hit in self.composed_pattern:
+            if self.tracker.search_preferences(str(hit)) == None:
+                self.tracker.create_entry(str(hit))
+            else:
+                self.tracker.assign_rating(str(hit), self.tracker.calculate_rating(self.tracker.search_preferences(str(hit)), like_bool))
+

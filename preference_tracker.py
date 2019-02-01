@@ -28,5 +28,7 @@ class Tracker:
 
     def search_preferences(self, key):
         User = Query()
-        return self.user_preferences.get(User.id == key)['rating']
-
+        if self.user_preferences.get(User.id == key) == None:
+            return None
+        else:
+            return self.user_preferences.get(User.id == key)['rating']
