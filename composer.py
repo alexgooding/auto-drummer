@@ -17,7 +17,7 @@ from os.path import join as pjoin
 from os import remove as remove_file
 from os import name as osname
 from os import sep
-from random import randint
+from random import randint, choices
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -234,7 +234,7 @@ class Composer:
                 rand_solution,  fill_locations = self._extend_pattern(rand_solution, pattern_length, constraints, fills)
             i += 1
 
-        return rand_solution, rand_index, fill_locations
+        return rand_solution, fill_locations
 
     #Converts an indivdual solution into a list of ordinary drum hits and fill hits.
     def _sol_to_lists(self, solution, fill_locations):
@@ -250,15 +250,19 @@ class Composer:
         for hit in fill_strs:
             fill_list.append(hit[hit.find("(")+1:hit.find(")")].split(","))
 
+        #Convert time string to and integer
+        hit_list = [[h[0], int(h[1])] for h in hit_list]
+        fill_list = [[f[0], int(f[1])] for f in fill_list]
+
         #Removing the hits from hit list that conflict with the drum fill hits.
         if fill_locations is not None:
             for j in range(0, len(fill_locations), 2):
-                hit_list[:] = [item for item in hit_list if not (int(item[1]) > fill_locations[j] and int(item[1]) <= fill_locations[j+1])]
+                hit_list[:] = [item for item in hit_list if not (item[1] > fill_locations[j] and item[1] <= fill_locations[j+1])]
 
         return hit_list, fill_list
 
     #Represent hit_list as a table.
-    def _print_hits(self, pattern_index, hit_list, humanisation, pattern_length = 1):
+    def _print_hits(self, hit_list, humanisation, pattern_length = 1):
 
         #X represents the data points to be plotted on the grid.
         #It also stores velocity data about each hit.
@@ -375,37 +379,47 @@ class Composer:
     #A level of humanisation is chosen between 0 and 0.05.
     #Print and store solutions as MIDI files in the save path with a defined file name. Defaults to 1 pattern of length 1 bar with no humanisation, fills or user input.
     def generate_patterns(self, constraints, save_path, file_name, pattern_length = 1, fills = False, humanisation_intensity = 0, user_input = None):
-        solutions = self._generate_solutions(constraints, None, user_input, 1)
         pattern_plot = None
         fill_locations = None
-        if solutions is None:
-            return None
 
-        rand_solution, rand_index, fill_locations = self._search_solutions(solutions, constraints, fills, pattern_length, 20)
-        #Return none if no solution can be found.
-        if rand_solution == None:
-            return None
+        # Epsilon decreasing learning algorithm
+        rating_counter = self.tracker.get_rating_counter()
+        if rating_counter > 500:
+            rating_counter = 500
+        ai_pattern = choices([True, False], [rating_counter/1000, (1000-rating_counter)/1000])[0]
+        print(ai_pattern)
 
-        hit_list, fill_list = self._sol_to_lists(rand_solution, fill_locations)
+        if ai_pattern:
+            hit_list = self.tracker.sample_n_hits(20, pattern_length)
+            fill_list = []
+        else:
+            solutions = self._generate_solutions(constraints, None, user_input, 1)
+            if solutions is None:
+                return None
+            rand_solution, fill_locations = self._search_solutions(solutions, constraints, fills, pattern_length, 20)
+            #Return none if no solution can be found.
+            if rand_solution == None:
+                return None
+
+            hit_list, fill_list = self._sol_to_lists(rand_solution, fill_locations)
 
         #humanisation value to randomly nudge hits around and change velocity.
         #The further away from 0 the hit is nudged, the quieter it is hit.
         humanisation = np.random.normal(0, humanisation_intensity, len(hit_list + fill_list))
 
         self.composed_pattern = hit_list + fill_list
-        pattern_plot = self._print_hits(rand_index, self.composed_pattern, humanisation, pattern_length)
+        pattern_plot = self._print_hits(self.composed_pattern, humanisation, pattern_length)
         self._write_midi(hit_list, fill_list, save_path, file_name + ".mid", humanisation)
 
         #Remove temporary problem files
-        for i in range(1, pattern_length+1):
-            remove_file(self.rules_t + str(i) + '_bar_problem.lp')
+        if not ai_pattern:
+            for i in range(1, pattern_length+1):
+                remove_file(self.rules_t + str(i) + '_bar_problem.lp')
 
         return pattern_plot
 
     def assign_preference(self, like_bool):
         for hit in self.composed_pattern:
-            if self.tracker.search_preferences(str(hit)) == None:
-                self.tracker.create_entry(str(hit))
-            else:
-                self.tracker.assign_rating(str(hit), self.tracker.calculate_rating(self.tracker.search_preferences(str(hit)), like_bool))
+            condensed_hit = self.tracker.condense_pattern(hit)
+            self.tracker.assign_rating(str(condensed_hit), self.tracker.calculate_rating(self.tracker.search_preferences(str(condensed_hit)), like_bool))
 
