@@ -387,7 +387,6 @@ class Composer:
         if rating_counter > 500:
             rating_counter = 500
         ai_pattern = choices([True, False], [rating_counter/1000, (1000-rating_counter)/1000])[0]
-        print(ai_pattern)
 
         if ai_pattern:
             hit_list = self.tracker.sample_n_hits(20, pattern_length)
@@ -420,6 +419,6 @@ class Composer:
 
     def assign_preference(self, like_bool):
         for hit in self.composed_pattern:
-            condensed_hit = self.tracker.condense_pattern(hit)
+            condensed_hit = self.tracker.condense_hit(hit)
             self.tracker.assign_rating(str(condensed_hit), self.tracker.calculate_rating(self.tracker.search_preferences(str(condensed_hit)), like_bool))
 
